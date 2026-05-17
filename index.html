@@ -1,0 +1,2799 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+  <meta name="description" content="Medical Office Package & Delivery Tracker — fast, offline-friendly front-desk workflow tool." />
+  <meta name="theme-color" content="#0a0e14" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Front Desk · Package Tracker</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Pkg Tracker" />
+
+  <!-- Inline favicon (medical cross + box) so the file stays fully self-contained -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='6' y='14' width='52' height='42' rx='8' fill='%2360a5fa'/><path d='M28 24h8v8h8v8h-8v8h-8v-8h-8v-8h8z' fill='%230a0e14'/></svg>" />
+
+  <!-- Distinctive font pairing: Bricolage Grotesque for display, Geist for UI/body -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" />
+
+  <style>
+    /* =========================================================================
+       DESIGN TOKENS
+       ========================================================================= */
+    :root {
+      /* Surfaces — deep charcoal palette with subtle warmth */
+      --bg-base: #0a0e14;
+      --bg-surface: #10151d;
+      --bg-elevated: #161d27;
+      --bg-glass: rgba(22, 29, 39, 0.62);
+      --bg-glass-strong: rgba(22, 29, 39, 0.88);
+
+      /* Borders & dividers */
+      --border: rgba(255, 255, 255, 0.07);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --border-focus: rgba(96, 165, 250, 0.55);
+
+      /* Text */
+      --text-primary: #e8edf4;
+      --text-secondary: #9ba6b3;
+      --text-tertiary: #6c7682;
+      --text-inverse: #0a0e14;
+
+      /* Brand — soft medical blue */
+      --accent: #60a5fa;
+      --accent-hover: #93c5fd;
+      --accent-active: #3b82f6;
+      --accent-soft: rgba(96, 165, 250, 0.12);
+      --accent-glow: rgba(96, 165, 250, 0.28);
+
+      /* Status colors */
+      --success: #34d399;
+      --success-soft: rgba(52, 211, 153, 0.14);
+      --warning: #fbbf24;
+      --warning-soft: rgba(251, 191, 36, 0.14);
+      --danger: #f87171;
+      --danger-soft: rgba(248, 113, 113, 0.14);
+
+      /* Temperature colors */
+      --temp-cold: #22d3ee;
+      --temp-cold-soft: rgba(34, 211, 238, 0.13);
+      --temp-frozen: #a5b4fc;
+      --temp-frozen-soft: rgba(165, 180, 252, 0.16);
+      --temp-room: #cbd5e1;
+      --temp-room-soft: rgba(203, 213, 225, 0.10);
+
+      /* Radii */
+      --radius-xs: 6px;
+      --radius-sm: 8px;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 22px;
+
+      /* Shadows */
+      --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
+      --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.30);
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 24px 60px -12px rgba(0, 0, 0, 0.55);
+      --shadow-glow: 0 0 0 4px var(--accent-soft);
+
+      /* Typography */
+      --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+      --font-body: 'Geist', ui-sans-serif, system-ui, sans-serif;
+      --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-fast: 140ms;
+      --dur: 220ms;
+      --dur-slow: 360ms;
+    }
+
+    /* Light theme overrides */
+    [data-theme="light"] {
+      --bg-base: #f4f6fa;
+      --bg-surface: #ffffff;
+      --bg-elevated: #ffffff;
+      --bg-glass: rgba(255, 255, 255, 0.75);
+      --bg-glass-strong: rgba(255, 255, 255, 0.92);
+
+      --border: rgba(15, 23, 42, 0.08);
+      --border-strong: rgba(15, 23, 42, 0.16);
+
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-tertiary: #64748b;
+      --text-inverse: #ffffff;
+
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-active: #1e40af;
+      --accent-soft: rgba(37, 99, 235, 0.10);
+      --accent-glow: rgba(37, 99, 235, 0.22);
+
+      --success: #059669;
+      --success-soft: rgba(5, 150, 105, 0.12);
+      --warning: #d97706;
+      --warning-soft: rgba(217, 119, 6, 0.12);
+      --danger: #dc2626;
+      --danger-soft: rgba(220, 38, 38, 0.10);
+
+      --temp-cold: #0891b2;
+      --temp-cold-soft: rgba(8, 145, 178, 0.10);
+      --temp-frozen: #4f46e5;
+      --temp-frozen-soft: rgba(79, 70, 229, 0.10);
+      --temp-room: #64748b;
+      --temp-room-soft: rgba(100, 116, 139, 0.08);
+
+      --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.06);
+      --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --shadow-lg: 0 24px 60px -12px rgba(15, 23, 42, 0.18);
+    }
+
+    /* =========================================================================
+       BASE
+       ========================================================================= */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--text-primary);
+      background: var(--bg-base);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-feature-settings: 'ss01', 'cv11';
+      overflow-x: hidden;
+      transition: background-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
+    }
+
+    /* Atmospheric backdrop — subtle radial gradients to give depth */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(60% 50% at 12% 0%, rgba(96, 165, 250, 0.08), transparent 60%),
+        radial-gradient(50% 40% at 95% 8%, rgba(34, 211, 238, 0.05), transparent 60%),
+        radial-gradient(40% 35% at 50% 100%, rgba(129, 140, 248, 0.04), transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+      transition: opacity var(--dur) var(--ease-out);
+    }
+    [data-theme="light"] body::before {
+      background:
+        radial-gradient(60% 50% at 12% 0%, rgba(37, 99, 235, 0.06), transparent 60%),
+        radial-gradient(50% 40% at 95% 8%, rgba(14, 165, 233, 0.04), transparent 60%);
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+      color: inherit;
+    }
+
+    button { cursor: pointer; border: none; background: none; }
+
+    a { color: var(--accent); text-decoration: none; }
+
+    /* Focus rings — accessibility */
+    :focus { outline: none; }
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: var(--radius-xs);
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); background-clip: padding-box; border: 2px solid transparent; }
+
+    /* Selection */
+    ::selection { background: var(--accent-glow); color: var(--text-primary); }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0);
+      white-space: nowrap; border: 0;
+    }
+
+    /* =========================================================================
+       LOADING SCREEN
+       ========================================================================= */
+    .loader {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-base);
+      display: grid;
+      place-items: center;
+      z-index: 100;
+      transition: opacity 400ms var(--ease-out), visibility 400ms var(--ease-out);
+    }
+    .loader.hidden { opacity: 0; visibility: hidden; }
+    .loader-inner { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+    .loader-mark {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-active));
+      display: grid; place-items: center;
+      box-shadow: 0 12px 40px -6px var(--accent-glow);
+      animation: bob 1.4s var(--ease-in-out) infinite;
+    }
+    .loader-mark svg { width: 28px; height: 28px; color: white; }
+    .loader-text {
+      font-family: var(--font-display);
+      font-size: 14px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+    }
+    .loader-dots {
+      display: inline-flex; gap: 4px; margin-left: 6px; vertical-align: middle;
+    }
+    .loader-dots span {
+      width: 4px; height: 4px; border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1.2s var(--ease-in-out) infinite;
+    }
+    .loader-dots span:nth-child(2) { animation-delay: 0.15s; }
+    .loader-dots span:nth-child(3) { animation-delay: 0.30s; }
+
+    @keyframes bob {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-6px) scale(1.04); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    /* =========================================================================
+       HEADER / NAV
+       ========================================================================= */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      backdrop-filter: blur(18px) saturate(180%);
+      -webkit-backdrop-filter: blur(18px) saturate(180%);
+      background: var(--bg-glass);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark {
+      width: 38px; height: 38px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-active));
+      display: grid; place-items: center;
+      box-shadow: 0 6px 16px -4px var(--accent-glow);
+      flex-shrink: 0;
+    }
+    .brand-mark svg { width: 20px; height: 20px; color: white; }
+    .brand-text { display: flex; flex-direction: column; min-width: 0; }
+    .brand-title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 17px;
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+    .header-spacer { flex: 1; }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+
+    .header-clock {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text-secondary);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    @media (max-width: 720px) { .header-clock { display: none; } }
+
+    /* =========================================================================
+       BUTTONS
+       ========================================================================= */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 1;
+      color: var(--text-primary);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      transition: all var(--dur-fast) var(--ease-out);
+      white-space: nowrap;
+      user-select: none;
+      min-height: 40px;
+    }
+    .btn:hover { border-color: var(--border-strong); background: var(--bg-elevated); transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .btn-primary {
+      background: linear-gradient(180deg, var(--accent), var(--accent-active));
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 14px -4px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .btn-primary:hover { filter: brightness(1.08); border-color: transparent; }
+    [data-theme="light"] .btn-primary { color: white; }
+
+    .btn-ghost { background: transparent; border-color: transparent; color: var(--text-secondary); }
+    .btn-ghost:hover { background: var(--bg-surface); color: var(--text-primary); border-color: var(--border); }
+
+    .btn-icon {
+      width: 40px; height: 40px;
+      padding: 0;
+      display: inline-grid; place-items: center;
+    }
+
+    .btn-danger {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border-color: transparent;
+    }
+    .btn-danger:hover { background: var(--danger); color: white; }
+
+    .btn-success {
+      background: var(--success-soft);
+      color: var(--success);
+      border-color: transparent;
+    }
+    .btn-success:hover { background: var(--success); color: var(--text-inverse); }
+
+    .btn-sm { padding: 6px 10px; font-size: 13px; min-height: 32px; border-radius: var(--radius-xs); }
+    .btn-sm svg { width: 14px; height: 14px; }
+
+    /* =========================================================================
+       MAIN LAYOUT
+       ========================================================================= */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px 24px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    @media (max-width: 640px) {
+      main { padding: 20px 16px 60px; gap: 18px; }
+      .header-inner { padding: 12px 16px; }
+    }
+
+    /* Page intro */
+    .page-intro {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .page-title {
+      font-family: var(--font-display);
+      font-size: clamp(26px, 4vw, 36px);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin: 0;
+      color: var(--text-primary);
+    }
+    .page-title em {
+      font-style: normal;
+      background: linear-gradient(120deg, var(--accent), var(--temp-cold));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .page-sub {
+      margin-top: 6px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    /* =========================================================================
+       CARDS (glassmorphism)
+       ========================================================================= */
+    .card {
+      background: var(--bg-glass);
+      backdrop-filter: blur(14px) saturate(150%);
+      -webkit-backdrop-filter: blur(14px) saturate(150%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 18px 22px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin: 0;
+      color: var(--text-primary);
+    }
+    .card-subtitle {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+    .card-body { padding: 18px 22px 22px; }
+    .card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* =========================================================================
+       STATS GRID
+       ========================================================================= */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .stat {
+      position: relative;
+      padding: 18px 20px;
+      border-radius: var(--radius-lg);
+      background: var(--bg-glass);
+      backdrop-filter: blur(14px) saturate(150%);
+      -webkit-backdrop-filter: blur(14px) saturate(150%);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      transition: transform var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
+    }
+    .stat::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 140px; height: 140px;
+      background: radial-gradient(circle at top right, var(--stat-accent, var(--accent-soft)), transparent 70%);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .stat:hover { transform: translateY(-2px); border-color: var(--border-strong); }
+    .stat-label {
+      font-size: 12px;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .stat-label svg { width: 14px; height: 14px; color: var(--stat-icon, var(--accent)); }
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 36px;
+      font-weight: 600;
+      line-height: 1;
+      margin-top: 10px;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-meta { margin-top: 6px; font-size: 12px; color: var(--text-secondary); }
+
+    /* =========================================================================
+       QUICK ENTRY PILLS
+       ========================================================================= */
+    .quick-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      transition: all var(--dur-fast) var(--ease-out);
+    }
+    .pill:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-soft);
+      transform: translateY(-1px);
+    }
+    .pill svg { width: 13px; height: 13px; }
+
+    /* =========================================================================
+       FORM
+       ========================================================================= */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .field-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .field-label .required { color: var(--accent); }
+    .field-full { grid-column: 1 / -1; }
+
+    input[type="text"], input[type="datetime-local"], input[type="search"],
+    select, textarea {
+      width: 100%;
+      padding: 11px 13px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+      min-height: 42px;
+      font-family: var(--font-body);
+    }
+    textarea { min-height: 70px; resize: vertical; }
+    input::placeholder, textarea::placeholder { color: var(--text-tertiary); }
+    input:hover, select:hover, textarea:hover { border-color: var(--border-strong); }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: var(--shadow-glow);
+      background: var(--bg-elevated);
+    }
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239ba6b3' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 34px;
+    }
+    [data-theme="light"] select {
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 520px) {
+      .form-actions { justify-content: stretch; }
+      .form-actions .btn { flex: 1; }
+    }
+
+    /* Datalist styling is browser-controlled, but we can hint */
+    input[list] { background-image: none; }
+
+    /* =========================================================================
+       FILTER BAR
+       ========================================================================= */
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+    }
+    .search-wrap svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px; height: 16px;
+      color: var(--text-tertiary);
+      pointer-events: none;
+    }
+    .search-wrap input { padding-left: 38px; }
+
+    .filter-select { min-width: 150px; flex: 0 0 auto; }
+
+    /* =========================================================================
+       TABLE
+       ========================================================================= */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 0 -22px -22px;
+      padding: 0 22px 22px;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 14px;
+      min-width: 1000px;
+    }
+    thead th {
+      text-align: left;
+      padding: 12px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      background: var(--bg-glass-strong);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    tbody td {
+      padding: 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      color: var(--text-primary);
+    }
+    tbody tr {
+      transition: background var(--dur-fast) var(--ease-out);
+    }
+    tbody tr:hover { background: var(--bg-surface); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .row-time { font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+    .row-time strong { display: block; color: var(--text-primary); font-weight: 600; }
+
+    .row-tracking { font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary); }
+
+    .row-notes {
+      max-width: 240px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    /* Cold/Frozen row highlights */
+    tr.row-cold td:first-child { box-shadow: inset 3px 0 0 var(--temp-cold); }
+    tr.row-frozen td:first-child { box-shadow: inset 3px 0 0 var(--temp-frozen); }
+    tr.row-pending { background: linear-gradient(90deg, var(--warning-soft), transparent 30%); }
+    tr.row-pending:hover { background: linear-gradient(90deg, var(--warning-soft), var(--bg-surface)); }
+
+    /* =========================================================================
+       BADGES / CHIPS
+       ========================================================================= */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .badge::before {
+      content: '';
+      display: inline-block;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .badge-pending { color: var(--warning); background: var(--warning-soft); }
+    .badge-put-away { color: var(--accent); background: var(--accent-soft); }
+    .badge-completed { color: var(--success); background: var(--success-soft); }
+
+    .badge-temp { font-size: 11px; padding: 3px 8px; }
+    .badge-temp::before { display: none; }
+    .badge-cold { color: var(--temp-cold); background: var(--temp-cold-soft); }
+    .badge-frozen { color: var(--temp-frozen); background: var(--temp-frozen-soft); }
+    .badge-room { color: var(--text-secondary); background: var(--temp-room-soft); }
+
+    /* =========================================================================
+       EMPTY STATE
+       ========================================================================= */
+    .empty {
+      padding: 56px 20px;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+    .empty-art {
+      width: 80px; height: 80px;
+      margin: 0 auto 16px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, var(--accent-soft), transparent);
+      border: 1px dashed var(--border-strong);
+      display: grid; place-items: center;
+      color: var(--accent);
+    }
+    .empty-art svg { width: 36px; height: 36px; }
+    .empty-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .empty-text { font-size: 14px; max-width: 360px; margin: 0 auto; }
+
+    /* =========================================================================
+       MODAL
+       ========================================================================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      z-index: 50;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity var(--dur) var(--ease-out), visibility var(--dur) var(--ease-out);
+    }
+    [data-theme="light"] .modal-backdrop { background: rgba(15, 23, 42, 0.35); }
+    .modal-backdrop.open { opacity: 1; visibility: visible; }
+    .modal {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 720px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      transform: scale(0.96) translateY(10px);
+      opacity: 0;
+      transition: transform var(--dur) var(--ease-out), opacity var(--dur) var(--ease-out);
+    }
+    .modal-backdrop.open .modal { transform: scale(1) translateY(0); opacity: 1; }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      position: sticky; top: 0;
+      background: var(--bg-elevated);
+      z-index: 1;
+    }
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+    }
+    .modal-body { padding: 22px 24px; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex; gap: 10px; justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 520px) {
+      .modal-footer { justify-content: stretch; }
+      .modal-footer .btn { flex: 1; }
+    }
+
+    /* Confirm dialog variant */
+    .modal-confirm { max-width: 440px; text-align: left; }
+    .modal-confirm .modal-body {
+      padding-top: 24px;
+      display: flex; gap: 14px;
+    }
+    .confirm-icon {
+      flex-shrink: 0;
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: grid; place-items: center;
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+    .confirm-icon svg { width: 22px; height: 22px; }
+    .confirm-text strong { display: block; font-size: 16px; margin-bottom: 4px; }
+    .confirm-text span { color: var(--text-secondary); font-size: 14px; }
+
+    /* =========================================================================
+       TOASTS
+       ========================================================================= */
+    .toasts {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+      max-width: calc(100vw - 40px);
+    }
+    @media (max-width: 520px) {
+      .toasts { left: 16px; right: 16px; bottom: 16px; align-items: stretch; }
+    }
+    .toast {
+      pointer-events: auto;
+      min-width: 280px;
+      max-width: 380px;
+      padding: 12px 14px 12px 14px;
+      border-radius: var(--radius);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      transform: translateX(20px);
+      opacity: 0;
+      animation: toast-in 320ms var(--ease-out) forwards;
+    }
+    .toast.removing { animation: toast-out 240ms var(--ease-in-out) forwards; }
+    .toast-icon {
+      width: 22px; height: 22px;
+      border-radius: 7px;
+      display: grid; place-items: center;
+      flex-shrink: 0;
+      color: white;
+    }
+    .toast-icon svg { width: 14px; height: 14px; }
+    .toast-success .toast-icon { background: var(--success); }
+    .toast-info .toast-icon { background: var(--accent); }
+    .toast-danger .toast-icon { background: var(--danger); }
+    .toast-warning .toast-icon { background: var(--warning); color: var(--text-inverse); }
+    .toast-body { flex: 1; font-size: 13.5px; color: var(--text-primary); line-height: 1.4; }
+    .toast-body strong { display: block; font-weight: 600; }
+    .toast-body span { color: var(--text-secondary); font-size: 12.5px; }
+    .toast-close {
+      color: var(--text-tertiary);
+      padding: 2px;
+      border-radius: 6px;
+      transition: color var(--dur-fast);
+    }
+    .toast-close:hover { color: var(--text-primary); }
+
+    @keyframes toast-in {
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes toast-out {
+      to { transform: translateX(20px); opacity: 0; }
+    }
+
+    /* =========================================================================
+       FADE-IN ROW ANIMATION
+       ========================================================================= */
+    @keyframes row-in {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    tbody tr { animation: row-in 220ms var(--ease-out) both; }
+
+    /* =========================================================================
+       LOCK SCREEN (passcode gate)
+       ========================================================================= */
+    .lock {
+      position: fixed;
+      inset: 0;
+      z-index: 110;   /* Above the boot loader (z-index 100) */
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background:
+        radial-gradient(60% 50% at 50% 0%, rgba(96, 165, 250, 0.18), transparent 70%),
+        radial-gradient(40% 40% at 50% 100%, rgba(34, 211, 238, 0.10), transparent 70%),
+        var(--bg-base);
+      transition: opacity 320ms var(--ease-out), visibility 320ms var(--ease-out);
+    }
+    [data-theme="light"] .lock {
+      background:
+        radial-gradient(60% 50% at 50% 0%, rgba(37, 99, 235, 0.12), transparent 70%),
+        radial-gradient(40% 40% at 50% 100%, rgba(14, 165, 233, 0.08), transparent 70%),
+        var(--bg-base);
+    }
+    .lock.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .lock-card {
+      width: 100%;
+      max-width: 380px;
+      padding: 36px 28px 28px;
+      border-radius: var(--radius-xl);
+      background: var(--bg-glass-strong);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+      animation: lock-in 420ms var(--ease-out) both;
+    }
+    @keyframes lock-in {
+      from { transform: translateY(14px) scale(0.98); opacity: 0; }
+      to { transform: none; opacity: 1; }
+    }
+
+    .lock-mark {
+      width: 56px; height: 56px;
+      margin: 0 auto;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-active));
+      display: grid; place-items: center;
+      box-shadow: 0 12px 40px -6px var(--accent-glow);
+      color: white;
+    }
+    .lock-mark svg { width: 26px; height: 26px; }
+    .lock-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin: 18px 0 4px;
+      color: var(--text-primary);
+    }
+    .lock-sub {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin: 0 0 22px;
+    }
+
+    .lock-dots {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      margin: 8px 0 22px;
+    }
+    .lock-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: transparent;
+      border: 2px solid var(--border-strong);
+      transition: all 180ms var(--ease-out);
+    }
+    .lock-dot.filled {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+    .lock.error .lock-card { animation: shake 420ms var(--ease-in-out); }
+    .lock.error .lock-dot { border-color: var(--danger); background: var(--danger); box-shadow: 0 0 0 4px var(--danger-soft); }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-9px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(4px); }
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .key {
+      aspect-ratio: 1;
+      max-height: 76px;
+      border-radius: var(--radius);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 500;
+      display: grid;
+      place-items: center;
+      transition: transform 80ms var(--ease-out), background 140ms var(--ease-out), border-color 140ms var(--ease-out);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .key:hover { background: var(--bg-elevated); border-color: var(--border-strong); }
+    .key:active { transform: scale(0.96); background: var(--accent-soft); border-color: var(--accent); }
+    .key.key-action { background: transparent; border-color: transparent; color: var(--text-secondary); font-size: 14px; font-family: var(--font-body); }
+    .key.key-action:hover { color: var(--text-primary); background: var(--bg-surface); }
+    .key.key-action svg { width: 20px; height: 20px; }
+    .key-spacer { visibility: hidden; }
+
+    .lock-error-msg {
+      min-height: 18px;
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--danger);
+      opacity: 0;
+      transition: opacity 180ms var(--ease-out);
+    }
+    .lock.error .lock-error-msg { opacity: 1; }
+
+    .lock-hint {
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      font-size: 11.5px;
+      color: var(--text-tertiary);
+      letter-spacing: 0.04em;
+    }
+    .lock-hint kbd {
+      font-family: var(--font-mono);
+      background: var(--bg-surface);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 11px;
+    }
+
+    /* =========================================================================
+       SYNC STATUS INDICATOR
+       ========================================================================= */
+    .sync-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .sync-pill .sync-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--text-tertiary);
+      flex-shrink: 0;
+    }
+    .sync-pill.sync-online .sync-dot {
+      background: var(--success);
+      box-shadow: 0 0 0 3px var(--success-soft);
+      animation: sync-pulse 2.4s var(--ease-in-out) infinite;
+    }
+    .sync-pill.sync-local .sync-dot { background: var(--accent); }
+    .sync-pill.sync-error .sync-dot { background: var(--danger); }
+    @keyframes sync-pulse {
+      0%, 100% { box-shadow: 0 0 0 3px var(--success-soft); }
+      50% { box-shadow: 0 0 0 6px transparent; }
+    }
+    @media (max-width: 640px) {
+      .sync-pill .sync-label { display: none; }
+      .sync-pill { padding: 8px; }
+    }
+
+    /* =========================================================================
+       PRINT
+       ========================================================================= */
+    @media print {
+      :root {
+        --bg-base: #fff; --bg-surface: #fff; --bg-elevated: #fff; --bg-glass: #fff;
+        --text-primary: #000; --text-secondary: #333; --text-tertiary: #555;
+        --border: #ccc; --border-strong: #888;
+      }
+      body { background: #fff; color: #000; }
+      body::before { display: none; }
+      .header, .quick-pills, .form-actions, .row-actions, .filter-bar,
+      #entryForm, .toasts, .modal-backdrop, .btn-ghost, #archiveToggleBtn,
+      .card-actions, .stat::after, .lock, .sync-pill { display: none !important; }
+      .card { box-shadow: none; border: 1px solid #ccc; background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none; }
+      .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+      table { font-size: 11pt; min-width: 0; }
+      thead th { background: #f4f4f4; color: #000; position: static; }
+      tbody tr { animation: none; page-break-inside: avoid; }
+      tr.row-cold td:first-child, tr.row-frozen td:first-child { box-shadow: none; }
+      tr.row-pending { background: #fff7ed; }
+      .badge { border: 1px solid #ccc; color: #000 !important; background: #fff !important; }
+      .badge::before { display: none; }
+      main { padding: 0; max-width: none; }
+      a[href]::after { content: ''; }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    /* Utility */
+    .nowrap { white-space: nowrap; }
+    .muted { color: var(--text-tertiary); }
+    .mono { font-family: var(--font-mono); }
+
+    /* Hidden visually file input */
+    #importFile { display: none; }
+  </style>
+</head>
+
+<body>
+  <!-- ========================================================================
+       LOCK SCREEN — soft passcode gate (not real security; see README)
+       ======================================================================== -->
+  <div class="lock" id="lockScreen" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+    <div class="lock-card">
+      <div class="lock-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <h1 class="lock-title" id="lockTitle">Front Desk Access</h1>
+      <p class="lock-sub">Enter the 4-digit passcode</p>
+
+      <div class="lock-dots" id="lockDots" aria-label="Passcode entry">
+        <span class="lock-dot"></span>
+        <span class="lock-dot"></span>
+        <span class="lock-dot"></span>
+        <span class="lock-dot"></span>
+      </div>
+
+      <div class="keypad" id="keypad" role="group" aria-label="Number pad">
+        <button class="key" type="button" data-key="1">1</button>
+        <button class="key" type="button" data-key="2">2</button>
+        <button class="key" type="button" data-key="3">3</button>
+        <button class="key" type="button" data-key="4">4</button>
+        <button class="key" type="button" data-key="5">5</button>
+        <button class="key" type="button" data-key="6">6</button>
+        <button class="key" type="button" data-key="7">7</button>
+        <button class="key" type="button" data-key="8">8</button>
+        <button class="key" type="button" data-key="9">9</button>
+        <span class="key-spacer" aria-hidden="true"></span>
+        <button class="key" type="button" data-key="0">0</button>
+        <button class="key key-action" type="button" data-key="back" aria-label="Backspace">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+        </button>
+      </div>
+
+      <div class="lock-error-msg" id="lockError" role="alert">Incorrect passcode — try again.</div>
+
+      <div class="lock-hint">
+        You can also type on a keyboard · <kbd>Backspace</kbd> to clear
+      </div>
+    </div>
+  </div>
+  <!-- ========================================================================
+       LOADING SCREEN
+       ======================================================================== -->
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader-inner">
+      <div class="loader-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+      </div>
+      <div class="loader-text">
+        Loading
+        <span class="loader-dots"><span></span><span></span><span></span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       HEADER
+       ======================================================================== -->
+  <header class="header" role="banner">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">Front Desk · Package Tracker</span>
+          <span class="brand-sub">Medical Office</span>
+        </div>
+      </div>
+      <div class="header-spacer"></div>
+      <div class="header-actions">
+        <div class="header-clock" id="clock" aria-live="off">—</div>
+        <div class="sync-pill sync-local" id="syncPill" title="Storage status">
+          <span class="sync-dot" aria-hidden="true"></span>
+          <span class="sync-label" id="syncLabel">Local</span>
+        </div>
+        <button class="btn btn-ghost btn-icon" id="themeToggle" type="button" aria-label="Toggle theme" title="Toggle theme">
+          <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <button class="btn btn-ghost btn-icon" id="printBtn" type="button" aria-label="Print today's log" title="Print">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9"/>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+            <rect x="6" y="14" width="12" height="8"/>
+          </svg>
+        </button>
+        <button class="btn btn-ghost btn-icon" id="lockBtn" type="button" aria-label="Lock app" title="Lock">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       MAIN
+       ======================================================================== -->
+  <main role="main">
+    <!-- Intro -->
+    <section class="page-intro" aria-labelledby="pageTitle">
+      <div>
+        <h1 class="page-title" id="pageTitle">Today's <em>Deliveries</em></h1>
+        <p class="page-sub" id="todaySub">Track every package the moment it walks through the door.</p>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats" aria-label="Daily statistics">
+      <div class="stat" style="--stat-accent: var(--accent-soft); --stat-icon: var(--accent);">
+        <div class="stat-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          Today
+        </div>
+        <div class="stat-value" id="statToday">0</div>
+        <div class="stat-meta" id="statTodayMeta">deliveries received</div>
+      </div>
+      <div class="stat" style="--stat-accent: var(--temp-cold-soft); --stat-icon: var(--temp-cold);">
+        <div class="stat-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="m20 8-8 8"/><path d="m4 8 8 8"/><path d="M2 12h20"/></svg>
+          Cold Storage
+        </div>
+        <div class="stat-value" id="statCold">0</div>
+        <div class="stat-meta" id="statColdMeta">refrigerated &amp; frozen</div>
+      </div>
+      <div class="stat" style="--stat-accent: var(--warning-soft); --stat-icon: var(--warning);">
+        <div class="stat-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Pending
+        </div>
+        <div class="stat-value" id="statPending">0</div>
+        <div class="stat-meta" id="statPendingMeta">awaiting put-away</div>
+      </div>
+      <div class="stat" style="--stat-accent: var(--success-soft); --stat-icon: var(--success);">
+        <div class="stat-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Completed
+        </div>
+        <div class="stat-value" id="statCompleted">0</div>
+        <div class="stat-meta" id="statCompletedMeta">put-away today</div>
+      </div>
+    </section>
+
+    <!-- Entry Form -->
+    <section class="card" id="entryForm" aria-labelledby="entryTitle">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title" id="entryTitle">Log a New Package</h2>
+          <div class="card-subtitle">Fields marked <span style="color: var(--accent)">*</span> are required.</div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-ghost btn-sm" type="button" id="fillNowBtn" title="Set received time to now">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Now
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="quick-pills" id="quickPills" aria-label="Quick entry presets"></div>
+
+        <form id="packageForm" autocomplete="off" novalidate style="margin-top: 18px;">
+          <div class="form-grid">
+            <div class="field">
+              <label class="field-label" for="receivedAt">Received <span class="required" aria-hidden="true">*</span></label>
+              <input type="datetime-local" id="receivedAt" name="receivedAt" required />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="packageType">Package Type <span class="required" aria-hidden="true">*</span></label>
+              <select id="packageType" name="packageType" required>
+                <option value="">Select…</option>
+                <option>Medications</option>
+                <option>Medical Supplies</option>
+                <option>Lab Specimen</option>
+                <option>Office Supplies</option>
+                <option>Refrigerated Medication</option>
+                <option>Frozen Shipment</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="temperatureType">Temperature</label>
+              <select id="temperatureType" name="temperatureType">
+                <option value="Room Temperature">Room Temperature</option>
+                <option value="Cold/Refrigerated">Cold/Refrigerated</option>
+                <option value="Frozen">Frozen</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="courier">Courier</label>
+              <select id="courier" name="courier">
+                <option value="">Select…</option>
+                <option>FedEx</option>
+                <option>UPS</option>
+                <option>USPS</option>
+                <option>Amazon</option>
+                <option>Courier</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="trackingNumber">Tracking #</label>
+              <input type="text" id="trackingNumber" name="trackingNumber" placeholder="e.g. 1Z999AA10123456784" />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="orderedBy">Ordered By</label>
+              <input type="text" id="orderedBy" name="orderedBy" list="employeeList" placeholder="Staff name" />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="acceptedBy">Accepted By</label>
+              <input type="text" id="acceptedBy" name="acceptedBy" list="employeeList" placeholder="Who received it" />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="putAwayBy">Put Away By</label>
+              <input type="text" id="putAwayBy" name="putAwayBy" list="employeeList" placeholder="Optional" />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="status">Status</label>
+              <select id="status" name="status">
+                <option value="pending">Pending</option>
+                <option value="put-away">Put Away</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+
+            <div class="field field-full">
+              <label class="field-label" for="notes">Notes</label>
+              <textarea id="notes" name="notes" placeholder="Anything the next person should know…"></textarea>
+            </div>
+          </div>
+
+          <!-- Datalist populated dynamically from previous entries -->
+          <datalist id="employeeList"></datalist>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-ghost" id="resetFormBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+              Clear
+            </button>
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Save Package
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Deliveries Table -->
+    <section class="card" aria-labelledby="logTitle">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title" id="logTitle">Delivery Log</h2>
+          <div class="card-subtitle" id="logSubtitle">All recorded packages, newest first.</div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-ghost btn-sm" type="button" id="archiveToggleBtn" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+            <span id="archiveLabel">Show Archived</span>
+          </button>
+          <button class="btn btn-sm" type="button" id="exportBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+          <label class="btn btn-sm" for="importFile" style="cursor: pointer;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import
+          </label>
+          <input type="file" id="importFile" accept=".csv,text/csv" />
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="filter-bar" role="search">
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <label class="sr-only" for="searchInput">Search packages</label>
+            <input type="search" id="searchInput" placeholder="Search tracking #, name, type, notes…" />
+          </div>
+          <label class="sr-only" for="filterStatus">Filter by status</label>
+          <select id="filterStatus" class="filter-select" aria-label="Filter by status">
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="put-away">Put Away</option>
+            <option value="completed">Completed</option>
+          </select>
+          <label class="sr-only" for="filterTemp">Filter by temperature</label>
+          <select id="filterTemp" class="filter-select" aria-label="Filter by temperature">
+            <option value="">All temperatures</option>
+            <option value="Cold/Refrigerated">Cold/Refrigerated</option>
+            <option value="Frozen">Frozen</option>
+            <option value="Room Temperature">Room Temperature</option>
+          </select>
+        </div>
+
+        <div class="table-wrap" id="tableWrap" style="margin-top: 16px;">
+          <table id="packagesTable" aria-live="polite">
+            <thead>
+              <tr>
+                <th scope="col">Received</th>
+                <th scope="col">Package</th>
+                <th scope="col">Temp</th>
+                <th scope="col">Courier</th>
+                <th scope="col">Ordered By</th>
+                <th scope="col">Accepted By</th>
+                <th scope="col">Put Away By</th>
+                <th scope="col">Status</th>
+                <th scope="col">Notes</th>
+                <th scope="col" style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="packagesBody"></tbody>
+          </table>
+        </div>
+
+        <div class="empty" id="emptyState" hidden>
+          <div class="empty-art" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          </div>
+          <div class="empty-title" id="emptyTitle">No deliveries logged yet</div>
+          <div class="empty-text" id="emptyText">Use the form above to record your first package. Everything saves automatically to this device.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================================================
+       EDIT MODAL
+       ======================================================================== -->
+  <div class="modal-backdrop" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editTitle" aria-hidden="true">
+    <div class="modal" role="document">
+      <div class="modal-header">
+        <h3 class="modal-title" id="editTitle">Edit Package</h3>
+        <button class="btn btn-ghost btn-icon" type="button" id="closeEditBtn" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="editForm" autocomplete="off" novalidate>
+          <input type="hidden" id="editId" />
+          <div class="form-grid">
+            <div class="field">
+              <label class="field-label" for="editReceivedAt">Received <span class="required">*</span></label>
+              <input type="datetime-local" id="editReceivedAt" required />
+            </div>
+            <div class="field">
+              <label class="field-label" for="editPackageType">Package Type <span class="required">*</span></label>
+              <select id="editPackageType" required>
+                <option>Medications</option>
+                <option>Medical Supplies</option>
+                <option>Lab Specimen</option>
+                <option>Office Supplies</option>
+                <option>Refrigerated Medication</option>
+                <option>Frozen Shipment</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="editTemperatureType">Temperature</label>
+              <select id="editTemperatureType">
+                <option value="Room Temperature">Room Temperature</option>
+                <option value="Cold/Refrigerated">Cold/Refrigerated</option>
+                <option value="Frozen">Frozen</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="editCourier">Courier</label>
+              <select id="editCourier">
+                <option value="">Select…</option>
+                <option>FedEx</option>
+                <option>UPS</option>
+                <option>USPS</option>
+                <option>Amazon</option>
+                <option>Courier</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="editTrackingNumber">Tracking #</label>
+              <input type="text" id="editTrackingNumber" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="editOrderedBy">Ordered By</label>
+              <input type="text" id="editOrderedBy" list="employeeList" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="editAcceptedBy">Accepted By</label>
+              <input type="text" id="editAcceptedBy" list="employeeList" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="editPutAwayBy">Put Away By</label>
+              <input type="text" id="editPutAwayBy" list="employeeList" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="editStatus">Status</label>
+              <select id="editStatus">
+                <option value="pending">Pending</option>
+                <option value="put-away">Put Away</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+            <div class="field field-full">
+              <label class="field-label" for="editNotes">Notes</label>
+              <textarea id="editNotes"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" id="archiveBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+          <span id="archiveBtnLabel">Archive</span>
+        </button>
+        <button type="button" class="btn btn-ghost" id="cancelEditBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="saveEditBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       DELETE CONFIRMATION MODAL
+       ======================================================================== -->
+  <div class="modal-backdrop" id="confirmModal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-hidden="true">
+    <div class="modal modal-confirm" role="document">
+      <div class="modal-header">
+        <h3 class="modal-title" id="confirmTitle">Delete this package?</h3>
+      </div>
+      <div class="modal-body">
+        <div class="confirm-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="confirm-text">
+          <strong id="confirmHeadline">This can't be undone.</strong>
+          <span id="confirmDetail">The record will be permanently removed from this device. Consider archiving instead if you might need it later.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" id="cancelConfirmBtn">Cancel</button>
+        <button type="button" class="btn btn-danger" id="okConfirmBtn">Delete Permanently</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       TOASTS CONTAINER
+       ======================================================================== -->
+  <div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- ========================================================================
+       SCRIPT
+       ======================================================================== -->
+  <script type="module">
+  /* ===========================================================================
+     Front Desk Package Tracker
+     ---------------------------------------------------------------------------
+     A self-contained single-file vanilla JS app.
+
+     STORAGE MODES
+       Local      — browser localStorage only (default if no Firebase config)
+       Firestore  — real-time sync across devices when APP_CONFIG.firebase is set
+
+     ARCHITECTURE
+       Lock       - passcode gate (soft lock, NOT real security)
+       Storage    - abstract adapter over localStorage / Firestore with cache
+       Store      - selectors + filter state, reads from Storage
+       Utils      - tiny helpers (uuid, escape, date formatting, debounce, csv)
+       UI         - rendering: stats, table, empty state, toasts, modals, sync
+       Handlers   - form submit, edit/delete, mark put-away, import/export
+       Init       - boots the app, gates on lock, hides loader
+     =========================================================================== */
+
+  'use strict';
+
+  /* ---------------------------------------------------------------------------
+     APP CONFIG  ←  EDIT THIS BLOCK
+     ---------------------------------------------------------------------------
+     1) PASSCODE
+        Change the digits below to set a different 4-digit code.
+        This is a SOFT LOCK only — the code is visible in the page source.
+        Do NOT rely on it for protecting confidential information.
+
+     2) FIREBASE / FIRESTORE  (optional, for multi-device sync)
+        Leave apiKey as an empty string ("") to use local-only mode.
+        Otherwise paste the config from your Firebase project's web app.
+        See README.md for full setup including Firestore security rules.
+     --------------------------------------------------------------------------- */
+  const APP_CONFIG = {
+    passcode: '1997',
+
+    firebase: {
+      apiKey: 'AIzaSyA-fGjCSmFNOvASgphDzOwdJaMmhTFuO7o',
+      authDomain: 'package-tracker-a63db.firebaseapp.com',
+      projectId: 'package-tracker-a63db',
+      storageBucket: 'package-tracker-a63db.firebasestorage.app',
+      messagingSenderId: '1068881323681',
+      appId: '1:1068881323681:web:58823d0c8062706411f2e0',
+    },
+
+    // Firestore collection where packages are stored
+    collectionName: 'packages',
+  };
+
+  /* ---------------------------------------------------------------------------
+     CONSTANTS
+     --------------------------------------------------------------------------- */
+  const STORAGE_KEY  = 'mo_pkg_tracker_v1';
+  const THEME_KEY    = 'mo_pkg_tracker_theme';
+  const UNLOCK_KEY   = 'mo_pkg_tracker_unlocked';
+  const TOAST_TTL    = 3800;
+
+  // Quick-entry presets: one tap to pre-fill the form for the most common cases.
+  const QUICK_PRESETS = [
+    { label: 'Medications',          icon: 'pill',      type: 'Medications',           temp: 'Room Temperature' },
+    { label: 'Refrigerated Meds',    icon: 'snow',      type: 'Refrigerated Medication', temp: 'Cold/Refrigerated' },
+    { label: 'Frozen Shipment',      icon: 'flake',     type: 'Frozen Shipment',       temp: 'Frozen' },
+    { label: 'Lab Specimen',         icon: 'flask',     type: 'Lab Specimen',          temp: 'Cold/Refrigerated' },
+    { label: 'Medical Supplies',     icon: 'shield',    type: 'Medical Supplies',      temp: 'Room Temperature' },
+    { label: 'Office Supplies',      icon: 'box',       type: 'Office Supplies',       temp: 'Room Temperature' },
+  ];
+
+  // Inline SVG icon library so the file remains dependency-free.
+  const ICONS = {
+    pill:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5 20.5 10.5a4.95 4.95 0 1 0-7-7L3.5 13.5a4.95 4.95 0 1 0 7 7z"/><path d="m8.5 8.5 7 7"/></svg>',
+    snow:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="m20 8-8 8"/><path d="m4 8 8 8"/><path d="M2 12h20"/></svg>',
+    flake:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/></svg>',
+    flask:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V2"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    box:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
+    check:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    info:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    warn:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    edit:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+    trash:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>',
+    putaway:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+    x:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  };
+
+  /* ---------------------------------------------------------------------------
+     LOCK — passcode gate
+     ---------------------------------------------------------------------------
+     Soft lock to prevent casual access at the front desk. The passcode is
+     hardcoded in source (visible to anyone who views the page). For real
+     authentication, replace with Firebase Auth or a proper backend.
+
+     Unlock state is stored in sessionStorage so the user re-enters the code
+     each time the browser is reopened. Use localStorage instead to remember
+     across sessions (less secure but more convenient).
+     --------------------------------------------------------------------------- */
+  const Lock = {
+    buffer: '',
+    onUnlocked: null,
+
+    init(onUnlocked) {
+      this.onUnlocked = onUnlocked;
+      if (sessionStorage.getItem(UNLOCK_KEY) === '1') {
+        this.unlock(true);
+        return;
+      }
+      // No auto-unlock — show the lock screen now and dismiss the boot loader
+      // (the loader otherwise covers the passcode entry).
+      $('#loader').classList.add('hidden');
+      this.bind();
+    },
+
+    bind() {
+      $('#keypad').addEventListener('click', (e) => {
+        const btn = e.target.closest('.key');
+        if (!btn) return;
+        const k = btn.dataset.key;
+        if (k === 'back') this.del();
+        else this.push(k);
+      });
+
+      // Keyboard support — digits + backspace
+      document.addEventListener('keydown', (e) => {
+        if ($('#lockScreen').classList.contains('hidden')) return;
+        if (/^[0-9]$/.test(e.key)) { this.push(e.key); e.preventDefault(); }
+        else if (e.key === 'Backspace') { this.del(); e.preventDefault(); }
+        else if (e.key === 'Enter') { this.check(); e.preventDefault(); }
+      });
+    },
+
+    push(digit) {
+      if (this.buffer.length >= APP_CONFIG.passcode.length) return;
+      this.buffer += digit;
+      this.renderDots();
+      if (this.buffer.length === APP_CONFIG.passcode.length) {
+        // brief delay so the last dot fills visibly before validation
+        setTimeout(() => this.check(), 140);
+      }
+    },
+
+    del() {
+      this.buffer = this.buffer.slice(0, -1);
+      this.renderDots();
+      $('#lockScreen').classList.remove('error');
+    },
+
+    renderDots() {
+      const dots = $$('#lockDots .lock-dot');
+      dots.forEach((d, i) => d.classList.toggle('filled', i < this.buffer.length));
+    },
+
+    check() {
+      if (this.buffer === APP_CONFIG.passcode) {
+        this.unlock(false);
+      } else {
+        const screen = $('#lockScreen');
+        screen.classList.add('error');
+        setTimeout(() => {
+          this.buffer = '';
+          this.renderDots();
+          screen.classList.remove('error');
+        }, 480);
+      }
+    },
+
+    unlock(silent) {
+      sessionStorage.setItem(UNLOCK_KEY, '1');
+      $('#lockScreen').classList.add('hidden');
+      document.body.style.overflow = '';
+      if (this.onUnlocked) this.onUnlocked(silent);
+    },
+
+    lock() {
+      sessionStorage.removeItem(UNLOCK_KEY);
+      this.buffer = '';
+      this.renderDots();
+      $('#lockScreen').classList.remove('hidden', 'error');
+    },
+  };
+
+  /* ---------------------------------------------------------------------------
+     STORAGE ADAPTER
+     ---------------------------------------------------------------------------
+     Wraps both localStorage and Firestore behind a single interface. The rest
+     of the app reads from Storage.getAll() and writes via Storage.write() /
+     Storage.delete().
+
+     When Firestore is configured, onSnapshot keeps the local cache in sync
+     across all open devices in real time. localStorage is still used as an
+     offline cache so the app keeps working without a connection.
+     --------------------------------------------------------------------------- */
+  const Storage = {
+    mode: 'local',          // 'local' | 'firestore'
+    packages: [],           // unified cache
+    onChange: null,         // callback fired whenever cache changes
+    db: null,
+    unsub: null,
+    status: 'local',        // 'local' | 'online' | 'error' | 'connecting'
+
+    async init(onChange) {
+      this.onChange = onChange;
+
+      // Always load localStorage first as offline fallback / boot cache
+      this.loadLocal();
+
+      const cfg = APP_CONFIG.firebase;
+      if (cfg && cfg.apiKey && cfg.projectId) {
+        this.setStatus('connecting');
+        try {
+          await this.initFirestore(cfg);
+        } catch (err) {
+          console.warn('Firestore failed, staying local:', err);
+          this.mode = 'local';
+          this.setStatus('error');
+        }
+      } else {
+        this.setStatus('local');
+      }
+
+      // Initial render with whatever we have so far
+      if (this.onChange) this.onChange();
+    },
+
+    async initFirestore(cfg) {
+      const [{ initializeApp }, fs] = await Promise.all([
+        import('https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js'),
+      ]);
+
+      const app = initializeApp(cfg);
+      this.db = fs.getFirestore(app);
+      this.fs = fs;
+
+      // Persistent offline cache (best-effort; may fail in private/incognito)
+      try {
+        await fs.enableIndexedDbPersistence(this.db);
+      } catch (e) { /* ignore */ }
+
+      this.mode = 'firestore';
+
+      // Real-time listener — fires immediately with cached data, then on every change
+      this.unsub = fs.onSnapshot(
+        fs.collection(this.db, APP_CONFIG.collectionName),
+        (snap) => {
+          this.packages = snap.docs.map(d => d.data());
+          this.persistLocal();   // mirror to localStorage as offline fallback
+          this.setStatus(snap.metadata.fromCache ? 'connecting' : 'online');
+          if (this.onChange) this.onChange();
+        },
+        (err) => {
+          console.error('Firestore listener error:', err);
+          this.setStatus('error');
+          UI.toast('warning', 'Sync interrupted', 'Continuing with local data.');
+        }
+      );
+    },
+
+    async write(pkg) {
+      // Update local cache immediately for instant UI feedback
+      const idx = this.packages.findIndex(p => p.id === pkg.id);
+      if (idx >= 0) this.packages[idx] = pkg;
+      else this.packages.unshift(pkg);
+      this.persistLocal();
+      if (this.onChange) this.onChange();
+
+      // Then sync to Firestore if configured
+      if (this.mode === 'firestore') {
+        try {
+          await this.fs.setDoc(
+            this.fs.doc(this.db, APP_CONFIG.collectionName, pkg.id),
+            pkg
+          );
+        } catch (err) {
+          console.error('Firestore write failed:', err);
+          UI.toast('danger', 'Sync failed', 'Saved locally. Will retry when online.');
+        }
+      }
+    },
+
+    async delete(id) {
+      this.packages = this.packages.filter(p => p.id !== id);
+      this.persistLocal();
+      if (this.onChange) this.onChange();
+
+      if (this.mode === 'firestore') {
+        try {
+          await this.fs.deleteDoc(this.fs.doc(this.db, APP_CONFIG.collectionName, id));
+        } catch (err) {
+          console.error('Firestore delete failed:', err);
+          UI.toast('danger', 'Delete sync failed', 'Removed locally only.');
+        }
+      }
+    },
+
+    getAll() { return this.packages; },
+
+    loadLocal() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed.packages)) this.packages = parsed.packages;
+        }
+      } catch (e) {
+        console.warn('localStorage parse error:', e);
+      }
+    },
+
+    persistLocal() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ packages: this.packages }));
+      } catch (e) { /* quota exceeded; ignore */ }
+    },
+
+    setStatus(s) {
+      this.status = s;
+      UI.renderSyncStatus();
+    },
+  };
+
+  /* ---------------------------------------------------------------------------
+     UTILITIES
+     --------------------------------------------------------------------------- */
+  const $  = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+  const Utils = {
+    /** Crypto-strong unique id with safe fallback. */
+    uuid() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return 'p-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    },
+
+    /** Escape user input for safe HTML insertion. */
+    esc(str) {
+      if (str == null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    },
+
+    /** Pad number with leading zero. */
+    pad(n) { return String(n).padStart(2, '0'); },
+
+    /** Convert ISO -> value for <input type="datetime-local">. */
+    isoToLocalInput(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      return `${d.getFullYear()}-${Utils.pad(d.getMonth()+1)}-${Utils.pad(d.getDate())}T${Utils.pad(d.getHours())}:${Utils.pad(d.getMinutes())}`;
+    },
+
+    /** Convert <input type="datetime-local"> value -> ISO string. */
+    localInputToISO(val) {
+      if (!val) return new Date().toISOString();
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+    },
+
+    /** "Now" formatted for datetime-local. */
+    nowLocalInput() {
+      const d = new Date();
+      return `${d.getFullYear()}-${Utils.pad(d.getMonth()+1)}-${Utils.pad(d.getDate())}T${Utils.pad(d.getHours())}:${Utils.pad(d.getMinutes())}`;
+    },
+
+    /** "Today 2:34 PM" style. */
+    formatReceived(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '—';
+      const now = new Date();
+      const sameDay = d.toDateString() === now.toDateString();
+      const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+      const isYesterday = d.toDateString() === yesterday.toDateString();
+
+      const time = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      if (sameDay)     return { date: 'Today',     time };
+      if (isYesterday) return { date: 'Yesterday', time };
+      return {
+        date: d.toLocaleDateString([], { month: 'short', day: 'numeric', year: d.getFullYear() === now.getFullYear() ? undefined : 'numeric' }),
+        time,
+      };
+    },
+
+    /** Same day comparison vs now. */
+    isToday(iso) {
+      if (!iso) return false;
+      const d = new Date(iso);
+      return d.toDateString() === new Date().toDateString();
+    },
+
+    /** Debounce — used on search input. */
+    debounce(fn, wait = 180) {
+      let t;
+      return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(null, args), wait); };
+    },
+
+    /** CSV encoder — RFC 4180 compliant for our fields. */
+    toCSV(rows, headers) {
+      const escape = (v) => {
+        if (v == null) return '';
+        const s = String(v);
+        if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+        return s;
+      };
+      const head = headers.map(h => escape(h.label)).join(',');
+      const body = rows.map(r => headers.map(h => escape(r[h.key])).join(',')).join('\n');
+      return head + '\n' + body;
+    },
+
+    /** CSV parser — handles quoted values and embedded commas/newlines. */
+    parseCSV(text) {
+      const rows = [];
+      let cur = [], field = '', inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (inQuotes) {
+          if (c === '"') {
+            if (text[i + 1] === '"') { field += '"'; i++; }
+            else inQuotes = false;
+          } else field += c;
+        } else {
+          if (c === '"') inQuotes = true;
+          else if (c === ',') { cur.push(field); field = ''; }
+          else if (c === '\n') { cur.push(field); rows.push(cur); cur = []; field = ''; }
+          else if (c === '\r') { /* skip */ }
+          else field += c;
+        }
+      }
+      // Final field/row
+      if (field.length || cur.length) { cur.push(field); rows.push(cur); }
+      return rows.filter(r => r.length && !(r.length === 1 && r[0] === ''));
+    },
+
+    /** Trigger file download in-browser. */
+    download(filename, content, mime = 'text/csv;charset=utf-8') {
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click();
+      requestAnimationFrame(() => { document.body.removeChild(a); URL.revokeObjectURL(url); });
+    },
+  };
+
+  /* ---------------------------------------------------------------------------
+     STORE — selectors + filter state; package data lives in Storage
+     --------------------------------------------------------------------------- */
+  const Store = {
+    state: {
+      filters: { search: '', status: '', temperature: '', showArchived: false },
+      theme: 'dark',
+    },
+
+    /** Apply theme from localStorage (called before render). */
+    loadTheme() {
+      const theme = localStorage.getItem(THEME_KEY);
+      if (theme === 'light' || theme === 'dark') {
+        this.state.theme = theme;
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    },
+
+    /** Persist & apply theme. */
+    setTheme(theme) {
+      this.state.theme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem(THEME_KEY, theme);
+    },
+
+    /** CRUD — all data ops delegate to the Storage adapter. */
+    add(pkg) {
+      Storage.write(pkg);
+    },
+
+    update(id, patch) {
+      const existing = this.get(id);
+      if (!existing) return null;
+      const next = { ...existing, ...patch, updatedAt: new Date().toISOString() };
+      Storage.write(next);
+      return next;
+    },
+
+    remove(id) {
+      Storage.delete(id);
+    },
+
+    get(id) {
+      return Storage.getAll().find(p => p.id === id);
+    },
+
+    /** All packages (read-only view). */
+    all() { return Storage.getAll(); },
+
+    /** Filtered + sorted list for the table. */
+    visible() {
+      const { search, status, temperature, showArchived } = this.state.filters;
+      const q = search.trim().toLowerCase();
+      return Storage.getAll()
+        .filter(p => showArchived ? true : !p.archived)
+        .filter(p => !status || p.status === status)
+        .filter(p => !temperature || p.temperatureType === temperature)
+        .filter(p => {
+          if (!q) return true;
+          const hay = [
+            p.trackingNumber, p.packageType, p.courier, p.orderedBy,
+            p.acceptedBy, p.putAwayBy, p.notes, p.temperatureType, p.status
+          ].join(' ').toLowerCase();
+          return hay.includes(q);
+        })
+        .sort((a, b) => {
+          // Pending bubbles to top, then newest first
+          const ap = a.status === 'pending' ? 0 : 1;
+          const bp = b.status === 'pending' ? 0 : 1;
+          if (ap !== bp) return ap - bp;
+          return new Date(b.receivedAt) - new Date(a.receivedAt);
+        });
+    },
+
+    todays() {
+      return Storage.getAll().filter(p => Utils.isToday(p.receivedAt) && !p.archived);
+    },
+
+    /** Collect unique employee names for autocomplete datalist. */
+    employees() {
+      const set = new Set();
+      Storage.getAll().forEach(p => {
+        ['orderedBy', 'acceptedBy', 'putAwayBy'].forEach(k => {
+          const v = (p[k] || '').trim();
+          if (v) set.add(v);
+        });
+      });
+      return Array.from(set).sort((a, b) => a.localeCompare(b));
+    },
+  };
+
+  /* ---------------------------------------------------------------------------
+     UI — pure rendering, no state
+     --------------------------------------------------------------------------- */
+  const UI = {
+    /** Render statistics cards. */
+    renderStats() {
+      const todays = Store.todays();
+      const cold = todays.filter(p => p.temperatureType === 'Cold/Refrigerated' || p.temperatureType === 'Frozen').length;
+      const pending = Store.all().filter(p => p.status === 'pending' && !p.archived).length;
+      const completed = todays.filter(p => p.status === 'completed' || p.status === 'put-away').length;
+
+      $('#statToday').textContent     = todays.length;
+      $('#statCold').textContent      = cold;
+      $('#statPending').textContent   = pending;
+      $('#statCompleted').textContent = completed;
+
+      $('#statTodayMeta').textContent     = todays.length === 1 ? 'delivery received' : 'deliveries received';
+      $('#statPendingMeta').textContent   = pending === 1 ? 'awaiting put-away' : 'awaiting put-away';
+      $('#statCompletedMeta').textContent = completed === 1 ? 'put-away today' : 'put-away today';
+
+      // Subtitle
+      const today = new Date().toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+      $('#todaySub').textContent = `${today} · ${todays.length} package${todays.length === 1 ? '' : 's'} received so far.`;
+    },
+
+    /** Render quick-entry preset pills. */
+    renderQuickPills() {
+      const wrap = $('#quickPills');
+      wrap.innerHTML = QUICK_PRESETS.map((p, i) => `
+        <button type="button" class="pill" data-preset="${i}" title="Quick-fill: ${Utils.esc(p.label)}">
+          ${ICONS[p.icon] || ''}
+          <span>${Utils.esc(p.label)}</span>
+        </button>
+      `).join('');
+    },
+
+    /** Refresh the employee autocomplete datalist. */
+    renderEmployeeDatalist() {
+      const dl = $('#employeeList');
+      dl.innerHTML = Store.employees().map(n => `<option value="${Utils.esc(n)}"></option>`).join('');
+    },
+
+    /** Status badge HTML. */
+    statusBadge(status) {
+      const map = {
+        'pending':   { cls: 'badge-pending',   label: 'Pending' },
+        'put-away':  { cls: 'badge-put-away',  label: 'Put Away' },
+        'completed': { cls: 'badge-completed', label: 'Completed' },
+      };
+      const s = map[status] || map['pending'];
+      return `<span class="badge ${s.cls}">${s.label}</span>`;
+    },
+
+    /** Temperature badge HTML. */
+    tempBadge(temp) {
+      if (temp === 'Cold/Refrigerated') return `<span class="badge badge-temp badge-cold">❄ Cold</span>`;
+      if (temp === 'Frozen')            return `<span class="badge badge-temp badge-frozen">❄❄ Frozen</span>`;
+      return `<span class="badge badge-temp badge-room">Room</span>`;
+    },
+
+    /** Render the packages table. */
+    renderTable() {
+      const tbody = $('#packagesBody');
+      const empty = $('#emptyState');
+      const wrap  = $('#tableWrap');
+      const rows = Store.visible();
+
+      if (!rows.length) {
+        tbody.innerHTML = '';
+        wrap.hidden = true;
+        empty.hidden = false;
+        // Customize empty state per filter
+        const anyData = Store.all().length > 0;
+        if (anyData) {
+          $('#emptyTitle').textContent = 'No matches';
+          $('#emptyText').textContent  = 'Try adjusting your search or filters.';
+        } else {
+          $('#emptyTitle').textContent = 'No deliveries logged yet';
+          $('#emptyText').textContent  = 'Use the form above to record your first package. Everything saves automatically to this device.';
+        }
+        return;
+      }
+
+      wrap.hidden = false;
+      empty.hidden = true;
+
+      tbody.innerHTML = rows.map((p, i) => {
+        const t = Utils.formatReceived(p.receivedAt);
+        const rowClass = [
+          p.temperatureType === 'Cold/Refrigerated' ? 'row-cold' : '',
+          p.temperatureType === 'Frozen' ? 'row-frozen' : '',
+          p.status === 'pending' ? 'row-pending' : '',
+        ].filter(Boolean).join(' ');
+
+        const markPutAwayBtn = p.status === 'pending'
+          ? `<button class="btn btn-success btn-sm" data-action="putaway" data-id="${p.id}" title="Mark as Put Away" aria-label="Mark as Put Away">${ICONS.putaway}</button>`
+          : '';
+
+        return `
+          <tr class="${rowClass}" data-id="${p.id}" style="animation-delay: ${Math.min(i * 18, 200)}ms;">
+            <td class="row-time">
+              <strong>${Utils.esc(t.time)}</strong>
+              <span>${Utils.esc(t.date)}</span>
+            </td>
+            <td>
+              <div style="font-weight:500;">${Utils.esc(p.packageType || '—')}</div>
+              ${p.trackingNumber ? `<div class="row-tracking">${Utils.esc(p.trackingNumber)}</div>` : ''}
+            </td>
+            <td>${UI.tempBadge(p.temperatureType)}</td>
+            <td>${Utils.esc(p.courier || '—')}</td>
+            <td>${Utils.esc(p.orderedBy || '—')}</td>
+            <td>${Utils.esc(p.acceptedBy || '—')}</td>
+            <td>${Utils.esc(p.putAwayBy || '—')}</td>
+            <td>${UI.statusBadge(p.status)}</td>
+            <td><div class="row-notes" title="${Utils.esc(p.notes || '')}">${Utils.esc(p.notes || '')}</div></td>
+            <td>
+              <div class="row-actions">
+                ${markPutAwayBtn}
+                <button class="btn btn-ghost btn-sm" data-action="edit" data-id="${p.id}" aria-label="Edit" title="Edit">${ICONS.edit}</button>
+                <button class="btn btn-ghost btn-sm" data-action="delete" data-id="${p.id}" aria-label="Delete" title="Delete">${ICONS.trash}</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Subtitle count
+      const total = Store.all().filter(p => Store.state.filters.showArchived || !p.archived).length;
+      $('#logSubtitle').textContent = `Showing ${rows.length} of ${total} record${total === 1 ? '' : 's'}, newest first.`;
+    },
+
+    /** Full re-render after any state change. */
+    render() {
+      UI.renderStats();
+      UI.renderTable();
+      UI.renderEmployeeDatalist();
+    },
+
+    /** Update the sync indicator pill in the header. */
+    renderSyncStatus() {
+      const pill = $('#syncPill');
+      const label = $('#syncLabel');
+      if (!pill || !label) return;
+      pill.classList.remove('sync-online', 'sync-local', 'sync-error');
+      const map = {
+        online:      { cls: 'sync-online', text: 'Synced',    title: 'Live sync — connected to Firestore' },
+        connecting:  { cls: 'sync-local',  text: 'Syncing…',  title: 'Connecting to Firestore' },
+        local:       { cls: 'sync-local',  text: 'Local',     title: 'Local-only mode (no Firebase configured)' },
+        error:       { cls: 'sync-error',  text: 'Offline',   title: 'Sync error — using local data' },
+      };
+      const m = map[Storage.status] || map.local;
+      pill.classList.add(m.cls);
+      label.textContent = m.text;
+      pill.title = m.title;
+    },
+
+    /** Toast notifications. */
+    toast(kind, title, body = '') {
+      const wrap = $('#toasts');
+      const id = 't' + Date.now() + Math.random();
+      const iconMap = { success: ICONS.check, info: ICONS.info, danger: ICONS.warn, warning: ICONS.warn };
+      const div = document.createElement('div');
+      div.className = `toast toast-${kind}`;
+      div.id = id;
+      div.setAttribute('role', kind === 'danger' ? 'alert' : 'status');
+      div.innerHTML = `
+        <div class="toast-icon">${iconMap[kind] || ICONS.info}</div>
+        <div class="toast-body">
+          <strong>${Utils.esc(title)}</strong>
+          ${body ? `<span>${Utils.esc(body)}</span>` : ''}
+        </div>
+        <button class="toast-close" aria-label="Dismiss" type="button">${ICONS.x}</button>
+      `;
+      wrap.appendChild(div);
+      const dismiss = () => {
+        if (!document.getElementById(id)) return;
+        div.classList.add('removing');
+        setTimeout(() => div.remove(), 240);
+      };
+      div.querySelector('.toast-close').addEventListener('click', dismiss);
+      setTimeout(dismiss, TOAST_TTL);
+    },
+
+    /** Modal helpers. */
+    openModal(el) {
+      el.classList.add('open');
+      el.setAttribute('aria-hidden', 'false');
+      // Focus first focusable
+      requestAnimationFrame(() => {
+        const focusable = el.querySelector('input, select, textarea, button');
+        if (focusable) focusable.focus();
+      });
+      document.body.style.overflow = 'hidden';
+    },
+    closeModal(el) {
+      el.classList.remove('open');
+      el.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    },
+  };
+
+  /* ---------------------------------------------------------------------------
+     HANDLERS — wire user input to store mutations
+     --------------------------------------------------------------------------- */
+  const Handlers = {
+
+    /** Reset entry form to defaults (timestamped now). */
+    resetEntryForm() {
+      const form = $('#packageForm');
+      form.reset();
+      $('#receivedAt').value = Utils.nowLocalInput();
+      $('#temperatureType').value = 'Room Temperature';
+      $('#status').value = 'pending';
+    },
+
+    /** Quick-entry preset click. */
+    onQuickPreset(e) {
+      const btn = e.target.closest('.pill');
+      if (!btn) return;
+      const preset = QUICK_PRESETS[+btn.dataset.preset];
+      if (!preset) return;
+      $('#packageType').value = preset.type;
+      $('#temperatureType').value = preset.temp;
+      $('#receivedAt').value = Utils.nowLocalInput();
+      // Scroll the entry form into view on mobile
+      if (window.innerWidth < 720) {
+        $('#entryForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      // Move focus to the next likely field for fast keyboard entry
+      $('#courier').focus();
+      UI.toast('info', 'Quick-fill applied', preset.label);
+    },
+
+    /** New package form submit. */
+    onSubmit(e) {
+      e.preventDefault();
+      const form = $('#packageForm');
+      const data = {
+        id: Utils.uuid(),
+        receivedAt: Utils.localInputToISO($('#receivedAt').value),
+        packageType: $('#packageType').value.trim(),
+        temperatureType: $('#temperatureType').value,
+        courier: $('#courier').value.trim(),
+        trackingNumber: $('#trackingNumber').value.trim(),
+        orderedBy: $('#orderedBy').value.trim(),
+        acceptedBy: $('#acceptedBy').value.trim(),
+        putAwayBy: $('#putAwayBy').value.trim(),
+        notes: $('#notes').value.trim(),
+        status: $('#status').value,
+        archived: false,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Required validation
+      if (!data.packageType) {
+        UI.toast('danger', 'Package type required', 'Pick a type from the dropdown.');
+        $('#packageType').focus();
+        return;
+      }
+      if (!data.receivedAt) {
+        UI.toast('danger', 'Received time required', 'Set when this package arrived.');
+        $('#receivedAt').focus();
+        return;
+      }
+
+      // Auto-stamp completion if user creates record already marked done
+      if (data.status === 'completed' || data.status === 'put-away') {
+        data.completedAt = new Date().toISOString();
+      }
+
+      Store.add(data);
+      UI.render();
+      Handlers.resetEntryForm();
+      UI.toast('success', 'Package saved', `${data.packageType} · ${data.courier || 'no courier'}`);
+    },
+
+    /** Table click delegation: edit / delete / mark put-away. */
+    onTableClick(e) {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+      const pkg = Store.get(id);
+      if (!pkg) return;
+
+      if (action === 'edit')    Handlers.openEdit(pkg);
+      if (action === 'delete')  Handlers.askDelete(pkg);
+      if (action === 'putaway') Handlers.markPutAway(pkg);
+    },
+
+    /** One-click mark put-away. */
+    markPutAway(pkg) {
+      const updated = Store.update(pkg.id, {
+        status: 'put-away',
+        completedAt: new Date().toISOString(),
+      });
+      UI.render();
+      UI.toast('success', 'Marked put-away', updated?.packageType || '');
+    },
+
+    /** Open the edit modal pre-filled. */
+    openEdit(pkg) {
+      $('#editId').value              = pkg.id;
+      $('#editReceivedAt').value      = Utils.isoToLocalInput(pkg.receivedAt);
+      $('#editPackageType').value     = pkg.packageType || '';
+      $('#editTemperatureType').value = pkg.temperatureType || 'Room Temperature';
+      $('#editCourier').value         = pkg.courier || '';
+      $('#editTrackingNumber').value  = pkg.trackingNumber || '';
+      $('#editOrderedBy').value       = pkg.orderedBy || '';
+      $('#editAcceptedBy').value      = pkg.acceptedBy || '';
+      $('#editPutAwayBy').value       = pkg.putAwayBy || '';
+      $('#editStatus').value          = pkg.status || 'pending';
+      $('#editNotes').value           = pkg.notes || '';
+      $('#archiveBtnLabel').textContent = pkg.archived ? 'Unarchive' : 'Archive';
+      UI.openModal($('#editModal'));
+    },
+
+    /** Save edit changes. */
+    saveEdit() {
+      const id = $('#editId').value;
+      if (!id) return;
+      const before = Store.get(id);
+      const patch = {
+        receivedAt: Utils.localInputToISO($('#editReceivedAt').value),
+        packageType: $('#editPackageType').value.trim(),
+        temperatureType: $('#editTemperatureType').value,
+        courier: $('#editCourier').value.trim(),
+        trackingNumber: $('#editTrackingNumber').value.trim(),
+        orderedBy: $('#editOrderedBy').value.trim(),
+        acceptedBy: $('#editAcceptedBy').value.trim(),
+        putAwayBy: $('#editPutAwayBy').value.trim(),
+        status: $('#editStatus').value,
+        notes: $('#editNotes').value.trim(),
+      };
+      if (!patch.packageType) {
+        UI.toast('danger', 'Package type required');
+        return;
+      }
+      // Auto-stamp completion if status flipped to put-away/completed
+      const stamp = (patch.status === 'completed' || patch.status === 'put-away');
+      const wasOpen = before && before.status === 'pending';
+      if (stamp && wasOpen) patch.completedAt = new Date().toISOString();
+
+      Store.update(id, patch);
+      UI.closeModal($('#editModal'));
+      UI.render();
+      UI.toast('success', 'Changes saved', patch.packageType);
+    },
+
+    /** Toggle archive from inside the edit modal. */
+    toggleArchive() {
+      const id = $('#editId').value;
+      if (!id) return;
+      const pkg = Store.get(id);
+      if (!pkg) return;
+      Store.update(id, { archived: !pkg.archived });
+      UI.closeModal($('#editModal'));
+      UI.render();
+      UI.toast('info', pkg.archived ? 'Unarchived' : 'Archived', pkg.packageType);
+    },
+
+    /** Open delete confirmation. */
+    askDelete(pkg) {
+      const modal = $('#confirmModal');
+      modal.dataset.id = pkg.id;
+      $('#confirmDetail').textContent =
+        `${pkg.packageType || 'This package'} from ${pkg.courier || 'unknown courier'} will be permanently removed. Consider archiving instead if you might need it later.`;
+      UI.openModal(modal);
+    },
+
+    /** Confirm delete. */
+    confirmDelete() {
+      const modal = $('#confirmModal');
+      const id = modal.dataset.id;
+      if (!id) return;
+      const pkg = Store.get(id);
+      Store.remove(id);
+      UI.closeModal(modal);
+      UI.render();
+      UI.toast('success', 'Package deleted', pkg?.packageType || '');
+    },
+
+    /** Apply filter/search/sort. */
+    onSearch: Utils.debounce(function () {
+      Store.state.filters.search = $('#searchInput').value;
+      UI.renderTable();
+    }, 140),
+
+    onFilterStatus() {
+      Store.state.filters.status = $('#filterStatus').value;
+      UI.renderTable();
+    },
+
+    onFilterTemp() {
+      Store.state.filters.temperature = $('#filterTemp').value;
+      UI.renderTable();
+    },
+
+    onArchiveToggle() {
+      Store.state.filters.showArchived = !Store.state.filters.showArchived;
+      $('#archiveLabel').textContent = Store.state.filters.showArchived ? 'Hide Archived' : 'Show Archived';
+      $('#archiveToggleBtn').setAttribute('aria-pressed', String(Store.state.filters.showArchived));
+      UI.renderTable();
+    },
+
+    /** Export currently visible records as CSV. */
+    onExport() {
+      const headers = [
+        { key: 'receivedAt',      label: 'Received At' },
+        { key: 'packageType',     label: 'Package Type' },
+        { key: 'temperatureType', label: 'Temperature' },
+        { key: 'courier',         label: 'Courier' },
+        { key: 'trackingNumber',  label: 'Tracking Number' },
+        { key: 'orderedBy',       label: 'Ordered By' },
+        { key: 'acceptedBy',      label: 'Accepted By' },
+        { key: 'putAwayBy',       label: 'Put Away By' },
+        { key: 'status',          label: 'Status' },
+        { key: 'notes',           label: 'Notes' },
+        { key: 'completedAt',     label: 'Completed At' },
+        { key: 'archived',        label: 'Archived' },
+        { key: 'id',              label: 'ID' },
+      ];
+      const rows = Store.visible();
+      if (!rows.length) {
+        UI.toast('warning', 'Nothing to export', 'No records match the current filters.');
+        return;
+      }
+      const csv = Utils.toCSV(rows, headers);
+      const stamp = new Date().toISOString().slice(0, 10);
+      Utils.download(`packages-${stamp}.csv`, csv);
+      UI.toast('success', 'Exported', `${rows.length} record${rows.length === 1 ? '' : 's'} downloaded.`);
+    },
+
+    /** Import CSV (merges by id when present; otherwise creates new). */
+    onImport(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const rows = Utils.parseCSV(String(reader.result));
+          if (!rows.length) throw new Error('Empty file');
+          const head = rows.shift().map(h => h.trim().toLowerCase());
+
+          const idx = (name) => head.indexOf(name.toLowerCase());
+          const get = (r, name) => { const i = idx(name); return i >= 0 ? r[i] : ''; };
+
+          let added = 0, updated = 0;
+          rows.forEach(r => {
+            const id = (get(r, 'ID') || '').trim();
+            const pkg = {
+              id: id || Utils.uuid(),
+              receivedAt: new Date(get(r, 'Received At') || Date.now()).toISOString(),
+              packageType: get(r, 'Package Type') || 'Other',
+              temperatureType: get(r, 'Temperature') || 'Room Temperature',
+              courier: get(r, 'Courier') || '',
+              trackingNumber: get(r, 'Tracking Number') || '',
+              orderedBy: get(r, 'Ordered By') || '',
+              acceptedBy: get(r, 'Accepted By') || '',
+              putAwayBy: get(r, 'Put Away By') || '',
+              status: (get(r, 'Status') || 'pending').toLowerCase(),
+              notes: get(r, 'Notes') || '',
+              completedAt: get(r, 'Completed At') || '',
+              archived: /^(true|1|yes)$/i.test(get(r, 'Archived') || ''),
+              createdAt: new Date().toISOString(),
+            };
+            const existing = id ? Store.get(id) : null;
+            if (existing) {
+              Store.update(id, pkg);
+              updated++;
+            } else {
+              Store.add(pkg);
+              added++;
+            }
+          });
+          UI.render();
+          UI.toast('success', 'Import complete', `${added} added · ${updated} updated`);
+        } catch (err) {
+          console.error(err);
+          UI.toast('danger', 'Import failed', 'Make sure the file is a valid CSV exported by this app.');
+        } finally {
+          e.target.value = '';
+        }
+      };
+      reader.onerror = () => UI.toast('danger', 'Read error', 'Could not read the file.');
+      reader.readAsText(file);
+    },
+
+    /** Theme toggle. */
+    onThemeToggle() {
+      const next = Store.state.theme === 'dark' ? 'light' : 'dark';
+      Store.setTheme(next);
+      UI.toast('info', `${next === 'dark' ? 'Dark' : 'Light'} mode`, 'Theme switched.');
+    },
+
+    /** Print the log. */
+    onPrint() {
+      window.print();
+    },
+  };
+
+  /* ---------------------------------------------------------------------------
+     INIT
+     --------------------------------------------------------------------------- */
+  async function init() {
+    // 1. Theme first for snappy first paint
+    Store.loadTheme();
+
+    // 2. Initialize the lock screen — only proceed to bootApp() once unlocked
+    Lock.init(bootApp);
+  }
+
+  async function bootApp(silent) {
+    // 3. Initialize storage (loads localStorage, optionally connects Firestore)
+    await Storage.init(() => UI.render());
+
+    // 4. Pre-fill entry form
+    Handlers.resetEntryForm();
+
+    // 5. Quick pills
+    UI.renderQuickPills();
+    $('#quickPills').addEventListener('click', Handlers.onQuickPreset);
+
+    // 6. Form submit / reset / now
+    $('#packageForm').addEventListener('submit', Handlers.onSubmit);
+    $('#resetFormBtn').addEventListener('click', Handlers.resetEntryForm);
+    $('#fillNowBtn').addEventListener('click', () => {
+      $('#receivedAt').value = Utils.nowLocalInput();
+      UI.toast('info', 'Time set to now');
+    });
+
+    // 7. Table delegation
+    $('#packagesBody').addEventListener('click', Handlers.onTableClick);
+
+    // 8. Filters
+    $('#searchInput').addEventListener('input', Handlers.onSearch);
+    $('#filterStatus').addEventListener('change', Handlers.onFilterStatus);
+    $('#filterTemp').addEventListener('change', Handlers.onFilterTemp);
+    $('#archiveToggleBtn').addEventListener('click', Handlers.onArchiveToggle);
+
+    // 9. Edit modal
+    $('#closeEditBtn').addEventListener('click', () => UI.closeModal($('#editModal')));
+    $('#cancelEditBtn').addEventListener('click', () => UI.closeModal($('#editModal')));
+    $('#saveEditBtn').addEventListener('click', Handlers.saveEdit);
+    $('#archiveBtn').addEventListener('click', Handlers.toggleArchive);
+    $('#editForm').addEventListener('submit', (e) => { e.preventDefault(); Handlers.saveEdit(); });
+
+    // 10. Delete confirm modal
+    $('#cancelConfirmBtn').addEventListener('click', () => UI.closeModal($('#confirmModal')));
+    $('#okConfirmBtn').addEventListener('click', Handlers.confirmDelete);
+
+    // 11. Close modal on backdrop click / Escape
+    document.querySelectorAll('.modal-backdrop').forEach(bd => {
+      bd.addEventListener('click', (e) => { if (e.target === bd) UI.closeModal(bd); });
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-backdrop.open').forEach(bd => UI.closeModal(bd));
+      }
+      // Quick shortcut: Ctrl/Cmd+K focuses search
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        if ($('#lockScreen').classList.contains('hidden')) {
+          e.preventDefault();
+          $('#searchInput').focus();
+          $('#searchInput').select();
+        }
+      }
+    });
+
+    // 12. Export / import / theme / print / lock
+    $('#exportBtn').addEventListener('click', Handlers.onExport);
+    $('#importFile').addEventListener('change', Handlers.onImport);
+    $('#themeToggle').addEventListener('click', Handlers.onThemeToggle);
+    $('#printBtn').addEventListener('click', Handlers.onPrint);
+    $('#lockBtn').addEventListener('click', () => {
+      Lock.lock();
+      UI.toast('info', 'Locked', 'Enter the passcode to unlock.');
+    });
+
+    // 13. Live clock
+    const updateClock = () => {
+      const now = new Date();
+      $('#clock').textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) +
+        ' · ' + now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+    };
+    updateClock(); setInterval(updateClock, 30 * 1000);
+
+    // 14. First render + sync indicator
+    UI.render();
+    UI.renderSyncStatus();
+
+    // 15. Hide loader
+    setTimeout(() => { $('#loader').classList.add('hidden'); }, 350);
+
+    // Welcome toast (skip on session-restore unlock to avoid noise)
+    if (!silent) {
+      UI.toast('success', 'Welcome', Storage.mode === 'firestore'
+        ? 'Live sync enabled across devices.'
+        : 'Local mode — data saved on this device.');
+    }
+  }
+
+  // Boot
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  </script>
+</body>
+</html>

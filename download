@@ -1,0 +1,43 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node (in case tooling is added later)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+
+# Logs
+*.log
+
+# Local environment / secrets (don't commit these)
+.env
+.env.local
+.env.*.local
+firebase-config.local.js
+secrets.json
+
+# Build artifacts (in case a build is added later)
+dist/
+build/
+.cache/
+
+# OS junk
+.Spotlight-V100
+.Trashes
