@@ -1347,6 +1347,124 @@
     .qty-badge-multi strong { color: var(--accent); }
 
     /* =========================================================================
+       MASCOT — "Pico" the friendly package
+       ========================================================================= */
+    .mascot {
+      position: fixed;
+      bottom: 18px;
+      right: 18px;
+      z-index: 25;
+      pointer-events: none;
+      user-select: none;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 420ms var(--ease-out), transform 420ms var(--ease-out);
+    }
+    .mascot.mascot-shown {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .mascot-body {
+      position: relative;
+      width: 84px;
+      height: 84px;
+      cursor: pointer;
+      pointer-events: auto;
+      animation: mascot-breathe 4s var(--ease-in-out) infinite;
+      filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.35));
+      transition: transform 200ms var(--ease-out);
+    }
+    .mascot-body:hover { transform: scale(1.08); }
+    .mascot-body:active { transform: scale(0.96); }
+
+    .mascot-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+
+    @keyframes mascot-breathe {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+
+    /* Individual eye groups so each blinks at its own center */
+    .mascot-eye {
+      transform-origin: center;
+      transform-box: fill-box;
+      animation: mascot-blink 5.5s var(--ease-in-out) infinite;
+    }
+    @keyframes mascot-blink {
+      0%, 92%, 100% { transform: scaleY(1); }
+      95%, 97% { transform: scaleY(0.1); }
+    }
+
+    /* Right arm wave — pivot at the shoulder (bottom-left of bbox) */
+    .mascot-arm-wave {
+      transform-origin: 0 100%;
+      transform-box: fill-box;
+    }
+    .mascot.waving .mascot-arm-wave {
+      animation: mascot-wave 0.55s var(--ease-in-out) 3;
+    }
+    @keyframes mascot-wave {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-38deg); }
+    }
+
+    /* Speech bubble */
+    .mascot-bubble {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      right: 4px;
+      padding: 8px 13px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      font-family: var(--font-display);
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(6px) scale(0.92);
+      transform-origin: bottom right;
+      transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out);
+      pointer-events: none;
+    }
+    .mascot-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      right: 28px;
+      width: 11px;
+      height: 11px;
+      background: var(--bg-elevated);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      transform: rotate(45deg);
+    }
+    .mascot.greeting .mascot-bubble {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Hide on extra-small screens to avoid clutter */
+    @media (max-width: 380px) {
+      .mascot { display: none; }
+    }
+
+    /* Respect users who prefer no motion */
+    @media (prefers-reduced-motion: reduce) {
+      .mascot-body, .mascot-eye, .mascot-arm-wave {
+        animation: none !important;
+      }
+    }
+
+    /* =========================================================================
        PRINT
        ========================================================================= */
     @media print {
@@ -1360,7 +1478,7 @@
       .header, .quick-pills, .form-actions, .row-actions, .filter-bar,
       #entryForm, .toasts, .modal-backdrop, .btn-ghost, #archiveToggleBtn,
       .card-actions, .stat::after, .lock, .sync-pill,
-      #calendarCard, .filter-chip { display: none !important; }
+      #calendarCard, .filter-chip, .mascot { display: none !important; }
       .card { box-shadow: none; border: 1px solid #ccc; background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none; }
       .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
       table { font-size: 11pt; min-width: 0; }
@@ -1551,46 +1669,6 @@
         </div>
         <div class="stat-value" id="statCompleted">0</div>
         <div class="stat-meta" id="statCompletedMeta">put-away today</div>
-      </div>
-    </section>
-
-    <!-- Calendar -->
-    <section class="card" id="calendarCard" aria-labelledby="calendarTitle">
-      <div class="card-header">
-        <div>
-          <h2 class="card-title" id="calendarTitle">Delivery Calendar</h2>
-          <div class="card-subtitle">Click any day to see its packages.</div>
-        </div>
-        <div class="card-actions">
-          <button class="btn btn-ghost btn-sm" type="button" id="calTodayBtn">Today</button>
-        </div>
-      </div>
-      <div class="card-body">
-        <div class="cal-toolbar">
-          <div class="cal-nav">
-            <button class="btn btn-ghost btn-icon" type="button" id="calPrevBtn" aria-label="Previous month">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-          </div>
-          <div class="cal-month-label" id="calMonthLabel" aria-live="polite">—</div>
-          <div class="cal-nav">
-            <button class="btn btn-ghost btn-icon" type="button" id="calNextBtn" aria-label="Next month">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </div>
-        </div>
-
-        <div class="cal-weekdays" aria-hidden="true">
-          <div class="cal-weekday">Sun</div>
-          <div class="cal-weekday">Mon</div>
-          <div class="cal-weekday">Tue</div>
-          <div class="cal-weekday">Wed</div>
-          <div class="cal-weekday">Thu</div>
-          <div class="cal-weekday">Fri</div>
-          <div class="cal-weekday">Sat</div>
-        </div>
-
-        <div class="cal-grid" id="calGrid" role="grid"></div>
       </div>
     </section>
 
@@ -1786,6 +1864,45 @@
           <div class="empty-title" id="emptyTitle">No deliveries logged yet</div>
           <div class="empty-text" id="emptyText">Use the form above to record your first package. Everything saves automatically to this device.</div>
         </div>
+      </div>
+    </section>
+    <!-- Calendar (below the log so it's a reference rather than a primary entry surface) -->
+    <section class="card" id="calendarCard" aria-labelledby="calendarTitle">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title" id="calendarTitle">Delivery Calendar</h2>
+          <div class="card-subtitle">Click any day to see its packages.</div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-ghost btn-sm" type="button" id="calTodayBtn">Today</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="cal-toolbar">
+          <div class="cal-nav">
+            <button class="btn btn-ghost btn-icon" type="button" id="calPrevBtn" aria-label="Previous month">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+          </div>
+          <div class="cal-month-label" id="calMonthLabel" aria-live="polite">—</div>
+          <div class="cal-nav">
+            <button class="btn btn-ghost btn-icon" type="button" id="calNextBtn" aria-label="Next month">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="cal-weekdays" aria-hidden="true">
+          <div class="cal-weekday">Sun</div>
+          <div class="cal-weekday">Mon</div>
+          <div class="cal-weekday">Tue</div>
+          <div class="cal-weekday">Wed</div>
+          <div class="cal-weekday">Thu</div>
+          <div class="cal-weekday">Fri</div>
+          <div class="cal-weekday">Sat</div>
+        </div>
+
+        <div class="cal-grid" id="calGrid" role="grid"></div>
       </div>
     </section>
   </main>
@@ -3174,9 +3291,10 @@
         Store.state.filters.dateFilter = null;
       } else {
         Store.state.filters.dateFilter = key;
-        // Scroll table into view so the receptionist sees the result
+        // Scroll the log into view (calendar now sits below, so we go up)
         setTimeout(() => {
-          $('#packagesTable').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const log = document.querySelector('[aria-labelledby="logTitle"]');
+          if (log) log.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 60);
       }
       UI.render();
@@ -3302,5 +3420,62 @@
     init();
   }
   </script>
+  <!-- ========================================================================
+       MASCOT — "Pico" the friendly package
+       Decorative; hidden until the app unlocks. Click him for a fresh greeting.
+       ======================================================================== -->
+  <div class="mascot" id="mascot" aria-hidden="true">
+    <div class="mascot-bubble" id="mascotBubble">
+      <span id="mascotMessage">Hi there!</span>
+    </div>
+    <div class="mascot-body" id="mascotBody" role="button" tabindex="-1" aria-label="Pico the package mascot">
+      <svg class="mascot-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <!-- Soft ground shadow -->
+        <ellipse cx="50" cy="92" rx="22" ry="2.5" fill="#000" opacity="0.22"/>
+
+        <!-- Left arm — static, slightly bent (drawn first so it's BEHIND the body) -->
+        <g>
+          <line x1="22" y1="60" x2="11" y2="72" stroke="#2a2118" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="11" cy="72" r="3.5" fill="#d4a574" stroke="#2a2118" stroke-width="1.8"/>
+        </g>
+
+        <!-- Right arm — the waver (drawn behind body too) -->
+        <g class="mascot-arm-wave">
+          <line x1="78" y1="60" x2="90" y2="50" stroke="#2a2118" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="90" cy="50" r="3.5" fill="#d4a574" stroke="#2a2118" stroke-width="1.8"/>
+        </g>
+
+        <!-- Box body -->
+        <rect x="22" y="30" width="56" height="52" rx="5" fill="#d4a574" stroke="#2a2118" stroke-width="2"/>
+
+        <!-- Darker top edge for 3D feel -->
+        <rect x="22" y="30" width="56" height="9" fill="#b88758"/>
+
+        <!-- Side seam line for cardboard character -->
+        <line x1="60" y1="39" x2="60" y2="82" stroke="#2a2118" stroke-width="1.2" opacity="0.32"/>
+
+        <!-- Packing tape across the top -->
+        <rect x="40" y="27" width="20" height="5" fill="#f1dba5" stroke="#9a7a45" stroke-width="0.5"/>
+
+        <!-- Eyes (each in its own group so they blink at their own centers) -->
+        <g class="mascot-eye">
+          <circle cx="38" cy="54" r="5" fill="#1a1a1a"/>
+          <circle cx="39.5" cy="52.5" r="1.4" fill="white"/>
+        </g>
+        <g class="mascot-eye">
+          <circle cx="62" cy="54" r="5" fill="#1a1a1a"/>
+          <circle cx="63.5" cy="52.5" r="1.4" fill="white"/>
+        </g>
+
+        <!-- Blush -->
+        <ellipse cx="30" cy="64" rx="3" ry="2" fill="#e89e8b" opacity="0.55"/>
+        <ellipse cx="70" cy="64" rx="3" ry="2" fill="#e89e8b" opacity="0.55"/>
+
+        <!-- Smile -->
+        <path d="M 41 67 Q 50 73 59 67" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+
 </body>
 </html>
