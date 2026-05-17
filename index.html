@@ -1122,6 +1122,231 @@
     }
 
     /* =========================================================================
+       CALENDAR
+       ========================================================================= */
+    .cal-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .cal-month-label {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+      min-width: 180px;
+      text-align: center;
+    }
+    .cal-nav { display: flex; gap: 6px; align-items: center; }
+
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .cal-weekday {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      padding: 4px 0;
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+    .cal-day {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      min-height: 70px;
+      padding: 8px 9px;
+      border-radius: var(--radius);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 4px;
+      transition: all var(--dur-fast) var(--ease-out);
+      cursor: pointer;
+      text-align: left;
+      overflow: hidden;
+      font-family: inherit;
+      color: inherit;
+    }
+    .cal-day:hover:not(.cal-day-empty):not(:disabled) {
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+      background: var(--bg-elevated);
+    }
+    .cal-day:disabled {
+      cursor: default;
+      opacity: 0.35;
+    }
+    .cal-day-empty {
+      background: transparent;
+      border-color: transparent;
+      cursor: default;
+      pointer-events: none;
+    }
+    .cal-day-num {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .cal-day-other .cal-day-num { color: var(--text-tertiary); opacity: 0.6; }
+
+    .cal-day-today {
+      border-color: var(--accent);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+    .cal-day-today .cal-day-num {
+      color: var(--accent);
+    }
+
+    .cal-day-selected {
+      background: var(--accent-soft) !important;
+      border-color: var(--accent) !important;
+    }
+    .cal-day-selected .cal-day-num { color: var(--accent); }
+
+    /* Tiny package count badge */
+    .cal-day-count {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--bg-elevated);
+      border-radius: 999px;
+      padding: 1px 7px;
+      align-self: stretch;
+      text-align: center;
+      margin-top: auto;
+    }
+    .cal-day-has-cold .cal-day-count {
+      color: var(--temp-cold);
+      background: var(--temp-cold-soft);
+    }
+    .cal-day-has-pending .cal-day-count {
+      color: var(--warning);
+      background: var(--warning-soft);
+    }
+
+    /* Status dots row */
+    .cal-day-dots {
+      display: flex;
+      gap: 3px;
+      flex-wrap: wrap;
+      min-height: 6px;
+    }
+    .cal-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--text-tertiary);
+    }
+    .cal-dot-pending   { background: var(--warning); }
+    .cal-dot-completed { background: var(--success); }
+    .cal-dot-cold      { background: var(--temp-cold); }
+    .cal-dot-frozen    { background: var(--temp-frozen); }
+
+    /* Active filter pill above the table */
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      background: var(--accent-soft);
+      color: var(--accent);
+      margin-left: 6px;
+      animation: row-in 200ms var(--ease-out);
+    }
+    .filter-chip button {
+      display: inline-grid;
+      place-items: center;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      color: inherit;
+      opacity: 0.7;
+      transition: opacity var(--dur-fast);
+    }
+    .filter-chip button:hover { opacity: 1; }
+    .filter-chip button svg { width: 11px; height: 11px; }
+
+    @media (max-width: 640px) {
+      .cal-day {
+        min-height: 56px;
+        padding: 5px 6px;
+        gap: 2px;
+      }
+      .cal-day-num { font-size: 12px; }
+      .cal-day-count { font-size: 10px; padding: 1px 5px; }
+      .cal-dot { width: 4px; height: 4px; }
+    }
+
+    /* Quantity input — wider styling for clarity */
+    .qty-field input[type="number"] {
+      width: 100%;
+      padding: 11px 13px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: var(--font-mono);
+      font-weight: 500;
+      min-height: 42px;
+      transition: border-color var(--dur-fast), box-shadow var(--dur-fast), background var(--dur-fast);
+    }
+    .qty-field input[type="number"]:focus {
+      border-color: var(--accent);
+      box-shadow: var(--shadow-glow);
+      background: var(--bg-elevated);
+      outline: none;
+    }
+    .qty-field input[type="number"]::-webkit-inner-spin-button,
+    .qty-field input[type="number"]::-webkit-outer-spin-button {
+      opacity: 1;
+      height: 36px;
+    }
+
+    /* Quantity badge in table */
+    .qty-badge {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .qty-badge strong {
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    .qty-badge-multi {
+      padding: 2px 7px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 6px;
+    }
+    .qty-badge-multi strong { color: var(--accent); }
+
+    /* =========================================================================
        PRINT
        ========================================================================= */
     @media print {
@@ -1134,7 +1359,8 @@
       body::before { display: none; }
       .header, .quick-pills, .form-actions, .row-actions, .filter-bar,
       #entryForm, .toasts, .modal-backdrop, .btn-ghost, #archiveToggleBtn,
-      .card-actions, .stat::after, .lock, .sync-pill { display: none !important; }
+      .card-actions, .stat::after, .lock, .sync-pill,
+      #calendarCard, .filter-chip { display: none !important; }
       .card { box-shadow: none; border: 1px solid #ccc; background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none; }
       .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
       table { font-size: 11pt; min-width: 0; }
@@ -1328,6 +1554,46 @@
       </div>
     </section>
 
+    <!-- Calendar -->
+    <section class="card" id="calendarCard" aria-labelledby="calendarTitle">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title" id="calendarTitle">Delivery Calendar</h2>
+          <div class="card-subtitle">Click any day to see its packages.</div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-ghost btn-sm" type="button" id="calTodayBtn">Today</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="cal-toolbar">
+          <div class="cal-nav">
+            <button class="btn btn-ghost btn-icon" type="button" id="calPrevBtn" aria-label="Previous month">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+          </div>
+          <div class="cal-month-label" id="calMonthLabel" aria-live="polite">—</div>
+          <div class="cal-nav">
+            <button class="btn btn-ghost btn-icon" type="button" id="calNextBtn" aria-label="Next month">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="cal-weekdays" aria-hidden="true">
+          <div class="cal-weekday">Sun</div>
+          <div class="cal-weekday">Mon</div>
+          <div class="cal-weekday">Tue</div>
+          <div class="cal-weekday">Wed</div>
+          <div class="cal-weekday">Thu</div>
+          <div class="cal-weekday">Fri</div>
+          <div class="cal-weekday">Sat</div>
+        </div>
+
+        <div class="cal-grid" id="calGrid" role="grid"></div>
+      </div>
+    </section>
+
     <!-- Entry Form -->
     <section class="card" id="entryForm" aria-labelledby="entryTitle">
       <div class="card-header">
@@ -1386,6 +1652,11 @@
                 <option>Courier</option>
                 <option>Other</option>
               </select>
+            </div>
+
+            <div class="field qty-field">
+              <label class="field-label" for="quantity">Quantity</label>
+              <input type="number" id="quantity" name="quantity" min="1" max="999" step="1" value="1" inputmode="numeric" />
             </div>
 
             <div class="field">
@@ -1493,6 +1764,7 @@
               <tr>
                 <th scope="col">Received</th>
                 <th scope="col">Package</th>
+                <th scope="col">Qty</th>
                 <th scope="col">Temp</th>
                 <th scope="col">Courier</th>
                 <th scope="col">Ordered By</th>
@@ -1568,6 +1840,10 @@
                 <option>Courier</option>
                 <option>Other</option>
               </select>
+            </div>
+            <div class="field qty-field">
+              <label class="field-label" for="editQuantity">Quantity</label>
+              <input type="number" id="editQuantity" min="1" max="999" step="1" value="1" inputmode="numeric" />
             </div>
             <div class="field">
               <label class="field-label" for="editTrackingNumber">Tracking #</label>
@@ -2041,6 +2317,27 @@
       return d.toDateString() === new Date().toDateString();
     },
 
+    /** Local day key 'YYYY-MM-DD' used by the calendar filter. */
+    localDayKey(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      return `${d.getFullYear()}-${Utils.pad(d.getMonth()+1)}-${Utils.pad(d.getDate())}`;
+    },
+
+    /** Compose a 'YYYY-MM-DD' key from year/month/day numbers. */
+    dayKey(year, month, day) {
+      return `${year}-${Utils.pad(month+1)}-${Utils.pad(day)}`;
+    },
+
+    /** Friendly long date string from a 'YYYY-MM-DD' key. */
+    formatDayKey(key) {
+      if (!key) return '';
+      const [y, m, d] = key.split('-').map(Number);
+      const date = new Date(y, m - 1, d);
+      return date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    },
+
     /** Debounce — used on search input. */
     debounce(fn, wait = 180) {
       let t;
@@ -2100,8 +2397,9 @@
      --------------------------------------------------------------------------- */
   const Store = {
     state: {
-      filters: { search: '', status: '', temperature: '', showArchived: false },
+      filters: { search: '', status: '', temperature: '', showArchived: false, dateFilter: null },
       theme: 'dark',
+      calendarMonth: null,  // {year, month} — what month the calendar is showing
     },
 
     /** Apply theme from localStorage (called before render). */
@@ -2146,12 +2444,17 @@
 
     /** Filtered + sorted list for the table. */
     visible() {
-      const { search, status, temperature, showArchived } = this.state.filters;
+      const { search, status, temperature, showArchived, dateFilter } = this.state.filters;
       const q = search.trim().toLowerCase();
       return Storage.getAll()
         .filter(p => showArchived ? true : !p.archived)
         .filter(p => !status || p.status === status)
         .filter(p => !temperature || p.temperatureType === temperature)
+        .filter(p => {
+          if (!dateFilter) return true;
+          // dateFilter is a 'YYYY-MM-DD' string for the local day
+          return Utils.localDayKey(p.receivedAt) === dateFilter;
+        })
         .filter(p => {
           if (!q) return true;
           const hay = [
@@ -2193,22 +2496,26 @@
     /** Render statistics cards. */
     renderStats() {
       const todays = Store.todays();
-      const cold = todays.filter(p => p.temperatureType === 'Cold/Refrigerated' || p.temperatureType === 'Frozen').length;
-      const pending = Store.all().filter(p => p.status === 'pending' && !p.archived).length;
-      const completed = todays.filter(p => p.status === 'completed' || p.status === 'put-away').length;
+      const sumQty = (arr) => arr.reduce((s, p) => s + (Number(p.quantity) || 1), 0);
 
-      $('#statToday').textContent     = todays.length;
-      $('#statCold').textContent      = cold;
-      $('#statPending').textContent   = pending;
-      $('#statCompleted').textContent = completed;
+      const todayItems = sumQty(todays);
+      const coldItems  = sumQty(todays.filter(p => p.temperatureType === 'Cold/Refrigerated' || p.temperatureType === 'Frozen'));
+      const pendingItems = sumQty(Store.all().filter(p => p.status === 'pending' && !p.archived));
+      const completedItems = sumQty(todays.filter(p => p.status === 'completed' || p.status === 'put-away'));
 
-      $('#statTodayMeta').textContent     = todays.length === 1 ? 'delivery received' : 'deliveries received';
-      $('#statPendingMeta').textContent   = pending === 1 ? 'awaiting put-away' : 'awaiting put-away';
-      $('#statCompletedMeta').textContent = completed === 1 ? 'put-away today' : 'put-away today';
+      $('#statToday').textContent     = todayItems;
+      $('#statCold').textContent      = coldItems;
+      $('#statPending').textContent   = pendingItems;
+      $('#statCompleted').textContent = completedItems;
 
-      // Subtitle
+      const recordsCount = todays.length;
+      $('#statTodayMeta').textContent     = `across ${recordsCount} ${recordsCount === 1 ? 'delivery' : 'deliveries'}`;
+      $('#statColdMeta').textContent      = 'refrigerated & frozen items';
+      $('#statPendingMeta').textContent   = 'awaiting put-away';
+      $('#statCompletedMeta').textContent = 'put-away today';
+
       const today = new Date().toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
-      $('#todaySub').textContent = `${today} · ${todays.length} package${todays.length === 1 ? '' : 's'} received so far.`;
+      $('#todaySub').textContent = `${today} · ${todayItems} item${todayItems === 1 ? '' : 's'} received across ${recordsCount} delivery${recordsCount === 1 ? '' : ' drops'}.`;
     },
 
     /** Render quick-entry preset pills. */
@@ -2284,6 +2591,11 @@
           ? `<button class="btn btn-success btn-sm" data-action="putaway" data-id="${p.id}" title="Mark as Put Away" aria-label="Mark as Put Away">${ICONS.putaway}</button>`
           : '';
 
+        const qty = Number(p.quantity) || 1;
+        const qtyCell = qty > 1
+          ? `<span class="qty-badge qty-badge-multi"><strong>${qty}</strong>×</span>`
+          : `<span class="qty-badge"><strong>1</strong></span>`;
+
         return `
           <tr class="${rowClass}" data-id="${p.id}" style="animation-delay: ${Math.min(i * 18, 200)}ms;">
             <td class="row-time">
@@ -2294,6 +2606,7 @@
               <div style="font-weight:500;">${Utils.esc(p.packageType || '—')}</div>
               ${p.trackingNumber ? `<div class="row-tracking">${Utils.esc(p.trackingNumber)}</div>` : ''}
             </td>
+            <td>${qtyCell}</td>
             <td>${UI.tempBadge(p.temperatureType)}</td>
             <td>${Utils.esc(p.courier || '—')}</td>
             <td>${Utils.esc(p.orderedBy || '—')}</td>
@@ -2312,9 +2625,19 @@
         `;
       }).join('');
 
-      // Subtitle count
+      // Subtitle count + active date filter chip
       const total = Store.all().filter(p => Store.state.filters.showArchived || !p.archived).length;
-      $('#logSubtitle').textContent = `Showing ${rows.length} of ${total} record${total === 1 ? '' : 's'}, newest first.`;
+      const dateFilter = Store.state.filters.dateFilter;
+      const chip = dateFilter
+        ? ` <span class="filter-chip" role="status">
+              ${Utils.esc(Utils.formatDayKey(dateFilter))}
+              <button type="button" id="clearDateFilterBtn" aria-label="Clear date filter">${ICONS.x}</button>
+            </span>`
+        : '';
+      $('#logSubtitle').innerHTML = `Showing ${rows.length} of ${total} record${total === 1 ? '' : 's'}, newest first.${chip}`;
+      // Wire the chip's close button (created fresh each render)
+      const clearBtn = $('#clearDateFilterBtn');
+      if (clearBtn) clearBtn.addEventListener('click', () => Calendar.clearFilter());
     },
 
     /** Full re-render after any state change. */
@@ -2322,6 +2645,7 @@
       UI.renderStats();
       UI.renderTable();
       UI.renderEmployeeDatalist();
+      Calendar.render();
     },
 
     /** Update the sync indicator pill in the header. */
@@ -2399,6 +2723,7 @@
       $('#receivedAt').value = Utils.nowLocalInput();
       $('#temperatureType').value = 'Room Temperature';
       $('#status').value = 'pending';
+      $('#quantity').value = 1;
     },
 
     /** Quick-entry preset click. */
@@ -2429,6 +2754,7 @@
         packageType: $('#packageType').value.trim(),
         temperatureType: $('#temperatureType').value,
         courier: $('#courier').value.trim(),
+        quantity: Math.max(1, parseInt($('#quantity').value, 10) || 1),
         trackingNumber: $('#trackingNumber').value.trim(),
         orderedBy: $('#orderedBy').value.trim(),
         acceptedBy: $('#acceptedBy').value.trim(),
@@ -2459,7 +2785,8 @@
       Store.add(data);
       UI.render();
       Handlers.resetEntryForm();
-      UI.toast('success', 'Package saved', `${data.packageType} · ${data.courier || 'no courier'}`);
+      const qtyLabel = data.quantity > 1 ? `${data.quantity}× ` : '';
+      UI.toast('success', 'Package saved', `${qtyLabel}${data.packageType} · ${data.courier || 'no courier'}`);
     },
 
     /** Table click delegation: edit / delete / mark put-away. */
@@ -2493,6 +2820,7 @@
       $('#editPackageType').value     = pkg.packageType || '';
       $('#editTemperatureType').value = pkg.temperatureType || 'Room Temperature';
       $('#editCourier').value         = pkg.courier || '';
+      $('#editQuantity').value        = pkg.quantity || 1;
       $('#editTrackingNumber').value  = pkg.trackingNumber || '';
       $('#editOrderedBy').value       = pkg.orderedBy || '';
       $('#editAcceptedBy').value      = pkg.acceptedBy || '';
@@ -2513,6 +2841,7 @@
         packageType: $('#editPackageType').value.trim(),
         temperatureType: $('#editTemperatureType').value,
         courier: $('#editCourier').value.trim(),
+        quantity: Math.max(1, parseInt($('#editQuantity').value, 10) || 1),
         trackingNumber: $('#editTrackingNumber').value.trim(),
         orderedBy: $('#editOrderedBy').value.trim(),
         acceptedBy: $('#editAcceptedBy').value.trim(),
@@ -2596,6 +2925,7 @@
       const headers = [
         { key: 'receivedAt',      label: 'Received At' },
         { key: 'packageType',     label: 'Package Type' },
+        { key: 'quantity',        label: 'Quantity' },
         { key: 'temperatureType', label: 'Temperature' },
         { key: 'courier',         label: 'Courier' },
         { key: 'trackingNumber',  label: 'Tracking Number' },
@@ -2640,6 +2970,7 @@
               id: id || Utils.uuid(),
               receivedAt: new Date(get(r, 'Received At') || Date.now()).toISOString(),
               packageType: get(r, 'Package Type') || 'Other',
+              quantity: Math.max(1, parseInt(get(r, 'Quantity'), 10) || 1),
               temperatureType: get(r, 'Temperature') || 'Room Temperature',
               courier: get(r, 'Courier') || '',
               trackingNumber: get(r, 'Tracking Number') || '',
@@ -2684,6 +3015,176 @@
     /** Print the log. */
     onPrint() {
       window.print();
+    },
+  };
+
+  /* ---------------------------------------------------------------------------
+     CALENDAR — month-view grid showing per-day package counts
+     ---------------------------------------------------------------------------
+     Click a day → filters the table to just that day. Click again or use the
+     chip's × to clear. Visual cues per day:
+       - Number of items received (sum of quantities, not record count)
+       - Dots for status mix (pending / completed) and temperature (cold/frozen)
+       - "Today" highlighted with the accent ring
+       - Currently filtered day filled in accent color
+     --------------------------------------------------------------------------- */
+  const Calendar = {
+    /** Initialize to current month on first render. */
+    ensureMonth() {
+      if (!Store.state.calendarMonth) {
+        const now = new Date();
+        Store.state.calendarMonth = { year: now.getFullYear(), month: now.getMonth() };
+      }
+    },
+
+    /** Build an index of {dayKey -> {items, records, hasPending, hasCold, ...}}. */
+    indexPackages() {
+      const idx = {};
+      Storage.getAll().forEach(p => {
+        if (p.archived) return;
+        const key = Utils.localDayKey(p.receivedAt);
+        if (!key) return;
+        if (!idx[key]) idx[key] = {
+          items: 0, records: 0,
+          hasPending: false, hasCompleted: false,
+          hasCold: false, hasFrozen: false,
+        };
+        const bucket = idx[key];
+        bucket.items += Number(p.quantity) || 1;
+        bucket.records += 1;
+        if (p.status === 'pending') bucket.hasPending = true;
+        if (p.status === 'completed' || p.status === 'put-away') bucket.hasCompleted = true;
+        if (p.temperatureType === 'Cold/Refrigerated') bucket.hasCold = true;
+        if (p.temperatureType === 'Frozen') bucket.hasFrozen = true;
+      });
+      return idx;
+    },
+
+    /** Render the month grid. */
+    render() {
+      this.ensureMonth();
+      const { year, month } = Store.state.calendarMonth;
+      const monthLabel = new Date(year, month, 1).toLocaleDateString([], { month: 'long', year: 'numeric' });
+      $('#calMonthLabel').textContent = monthLabel;
+
+      const idx = this.indexPackages();
+      const todayKey = Utils.localDayKey(new Date().toISOString());
+      const selectedKey = Store.state.filters.dateFilter;
+
+      // First day of the month (Sun=0..Sat=6) determines leading blanks
+      const firstDow = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      // We also want to show leading days from previous month for a clean 6-row grid
+      const prevMonthDays = new Date(year, month, 0).getDate();
+      const cells = [];
+
+      // Leading days (previous month, faded)
+      for (let i = firstDow - 1; i >= 0; i--) {
+        const d = prevMonthDays - i;
+        const prevMonth = month === 0 ? 11 : month - 1;
+        const prevYear  = month === 0 ? year - 1 : year;
+        const key = Utils.dayKey(prevYear, prevMonth, d);
+        cells.push({ day: d, key, inMonth: false });
+      }
+      // This month
+      for (let d = 1; d <= daysInMonth; d++) {
+        cells.push({ day: d, key: Utils.dayKey(year, month, d), inMonth: true });
+      }
+      // Trailing days to fill to 42 cells (6 rows × 7) for consistent height
+      let extra = 1;
+      while (cells.length < 42) {
+        const nextMonth = month === 11 ? 0 : month + 1;
+        const nextYear  = month === 11 ? year + 1 : year;
+        cells.push({ day: extra, key: Utils.dayKey(nextYear, nextMonth, extra), inMonth: false });
+        extra++;
+      }
+
+      const grid = $('#calGrid');
+      grid.innerHTML = cells.map(cell => {
+        const data = idx[cell.key];
+        const isToday = cell.key === todayKey;
+        const isSelected = cell.key === selectedKey;
+
+        const classes = ['cal-day'];
+        if (!cell.inMonth) classes.push('cal-day-other');
+        if (isToday) classes.push('cal-day-today');
+        if (isSelected) classes.push('cal-day-selected');
+        if (data) {
+          if (data.hasCold || data.hasFrozen) classes.push('cal-day-has-cold');
+          if (data.hasPending) classes.push('cal-day-has-pending');
+        }
+
+        // Status/temperature dots (max 4 to avoid overflow)
+        const dots = [];
+        if (data) {
+          if (data.hasPending)   dots.push('<span class="cal-dot cal-dot-pending" title="Pending"></span>');
+          if (data.hasCompleted) dots.push('<span class="cal-dot cal-dot-completed" title="Completed"></span>');
+          if (data.hasCold)      dots.push('<span class="cal-dot cal-dot-cold" title="Cold"></span>');
+          if (data.hasFrozen)    dots.push('<span class="cal-dot cal-dot-frozen" title="Frozen"></span>');
+        }
+
+        const countLabel = data
+          ? `<div class="cal-day-count" title="${data.records} delivery${data.records === 1 ? '' : ' drops'}, ${data.items} item${data.items === 1 ? '' : 's'}">${data.items}</div>`
+          : '';
+
+        return `
+          <button type="button"
+                  class="${classes.join(' ')}"
+                  data-key="${cell.key}"
+                  aria-label="${Utils.formatDayKey(cell.key)}${data ? `, ${data.items} items` : ', no deliveries'}"
+                  ${!data && !isToday ? 'disabled' : ''}>
+            <span class="cal-day-num">${cell.day}</span>
+            <span class="cal-day-dots">${dots.join('')}</span>
+            ${countLabel}
+          </button>
+        `;
+      }).join('');
+    },
+
+    next() {
+      this.ensureMonth();
+      const m = Store.state.calendarMonth;
+      if (m.month === 11) { m.month = 0; m.year++; }
+      else m.month++;
+      this.render();
+    },
+
+    prev() {
+      this.ensureMonth();
+      const m = Store.state.calendarMonth;
+      if (m.month === 0) { m.month = 11; m.year--; }
+      else m.month--;
+      this.render();
+    },
+
+    jumpToToday() {
+      const now = new Date();
+      Store.state.calendarMonth = { year: now.getFullYear(), month: now.getMonth() };
+      this.render();
+    },
+
+    /** Click delegation on day buttons. */
+    onClick(e) {
+      const btn = e.target.closest('.cal-day');
+      if (!btn || btn.disabled) return;
+      const key = btn.dataset.key;
+      // Toggle: clicking the already-selected day clears the filter
+      if (Store.state.filters.dateFilter === key) {
+        Store.state.filters.dateFilter = null;
+      } else {
+        Store.state.filters.dateFilter = key;
+        // Scroll table into view so the receptionist sees the result
+        setTimeout(() => {
+          $('#packagesTable').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 60);
+      }
+      UI.render();
+    },
+
+    clearFilter() {
+      Store.state.filters.dateFilter = null;
+      UI.render();
     },
   };
 
@@ -2764,6 +3265,12 @@
       Lock.lock();
       UI.toast('info', 'Locked', 'Enter the passcode to unlock.');
     });
+
+    // 12b. Calendar
+    $('#calPrevBtn').addEventListener('click', () => Calendar.prev());
+    $('#calNextBtn').addEventListener('click', () => Calendar.next());
+    $('#calTodayBtn').addEventListener('click', () => Calendar.jumpToToday());
+    $('#calGrid').addEventListener('click', (e) => Calendar.onClick(e));
 
     // 13. Live clock
     const updateClock = () => {
