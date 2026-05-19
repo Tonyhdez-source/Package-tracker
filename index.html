@@ -665,7 +665,7 @@
       border-collapse: separate;
       border-spacing: 0;
       font-size: 14px;
-      min-width: 1000px;
+      min-width: 1200px;
     }
     thead th {
       text-align: left;
@@ -1298,6 +1298,54 @@
       .cal-dot { width: 4px; height: 4px; }
     }
 
+    /* Location badge in table */
+    .loc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .loc-badge svg {
+      width: 11px;
+      height: 11px;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    .loc-badge-empty {
+      color: var(--text-tertiary);
+      background: transparent;
+      border-style: dashed;
+      font-style: italic;
+    }
+    .loc-badge-empty svg { color: var(--text-tertiary); }
+
+    /* Contents cell — expandable */
+    .row-contents {
+      max-width: 220px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      white-space: normal;
+    }
+    .row-contents-empty {
+      color: var(--text-tertiary);
+      font-style: italic;
+    }
+
     /* Quantity input — wider styling for clarity */
     .qty-field input[type="number"] {
       width: 100%;
@@ -1766,10 +1814,23 @@
               </select>
             </div>
 
+            <div class="field">
+              <label class="field-label" for="location">Storage Location</label>
+              <input type="text" id="location" name="location" list="locationList" placeholder="e.g. Fridge A, Med Room shelf 2" />
+            </div>
+
+            <div class="field field-full">
+              <label class="field-label" for="contents">Contents <span style="color: var(--text-tertiary); font-weight: 400; text-transform: none; letter-spacing: 0;">— what's in the box</span></label>
+              <textarea id="contents" name="contents" placeholder="e.g. 2× epinephrine pens, 1× flu vaccine vials, 100× alcohol swabs"></textarea>
+            </div>
+
             <div class="field field-full">
               <label class="field-label" for="notes">Notes</label>
               <textarea id="notes" name="notes" placeholder="Anything the next person should know…"></textarea>
             </div>
+
+            <!-- Auto-built lists for autocomplete -->
+            <datalist id="locationList"></datalist>
           </div>
 
           <!-- Datalist populated dynamically from previous entries -->
@@ -1818,7 +1879,7 @@
           <div class="search-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <label class="sr-only" for="searchInput">Search packages</label>
-            <input type="search" id="searchInput" placeholder="Search tracking #, name, type, notes…" />
+            <input type="search" id="searchInput" placeholder="Search tracking #, name, location, contents, notes…" />
           </div>
           <label class="sr-only" for="filterStatus">Filter by status</label>
           <select id="filterStatus" class="filter-select" aria-label="Filter by status">
@@ -1849,6 +1910,8 @@
                 <th scope="col">Accepted By</th>
                 <th scope="col">Put Away By</th>
                 <th scope="col">Status</th>
+                <th scope="col">Location</th>
+                <th scope="col">Contents</th>
                 <th scope="col">Notes</th>
                 <th scope="col" style="text-align: right;">Actions</th>
               </tr>
@@ -1985,6 +2048,14 @@
                 <option value="put-away">Put Away</option>
                 <option value="completed">Completed</option>
               </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="editLocation">Storage Location</label>
+              <input type="text" id="editLocation" list="locationList" placeholder="e.g. Fridge A, Med Room shelf 2" />
+            </div>
+            <div class="field field-full">
+              <label class="field-label" for="editContents">Contents</label>
+              <textarea id="editContents" placeholder="What's in the box"></textarea>
             </div>
             <div class="field field-full">
               <label class="field-label" for="editNotes">Notes</label>
@@ -2576,7 +2647,8 @@
           if (!q) return true;
           const hay = [
             p.trackingNumber, p.packageType, p.courier, p.orderedBy,
-            p.acceptedBy, p.putAwayBy, p.notes, p.temperatureType, p.status
+            p.acceptedBy, p.putAwayBy, p.notes, p.temperatureType, p.status,
+            p.location, p.contents
           ].join(' ').toLowerCase();
           return hay.includes(q);
         })
@@ -2601,6 +2673,16 @@
           const v = (p[k] || '').trim();
           if (v) set.add(v);
         });
+      });
+      return Array.from(set).sort((a, b) => a.localeCompare(b));
+    },
+
+    /** Collect unique storage locations for autocomplete datalist. */
+    locations() {
+      const set = new Set();
+      Storage.getAll().forEach(p => {
+        const v = (p.location || '').trim();
+        if (v) set.add(v);
       });
       return Array.from(set).sort((a, b) => a.localeCompare(b));
     },
@@ -2650,6 +2732,13 @@
     renderEmployeeDatalist() {
       const dl = $('#employeeList');
       dl.innerHTML = Store.employees().map(n => `<option value="${Utils.esc(n)}"></option>`).join('');
+    },
+
+    /** Refresh the location autocomplete datalist. */
+    renderLocationDatalist() {
+      const dl = $('#locationList');
+      if (!dl) return;
+      dl.innerHTML = Store.locations().map(n => `<option value="${Utils.esc(n)}"></option>`).join('');
     },
 
     /** Status badge HTML. */
@@ -2713,6 +2802,15 @@
           ? `<span class="qty-badge qty-badge-multi"><strong>${qty}</strong>×</span>`
           : `<span class="qty-badge"><strong>1</strong></span>`;
 
+        const locIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
+        const locCell = p.location
+          ? `<span class="loc-badge" title="${Utils.esc(p.location)}">${locIcon}${Utils.esc(p.location)}</span>`
+          : `<span class="loc-badge loc-badge-empty">${locIcon}—</span>`;
+
+        const contentsCell = p.contents
+          ? `<div class="row-contents" title="${Utils.esc(p.contents)}">${Utils.esc(p.contents)}</div>`
+          : `<span class="row-contents-empty">—</span>`;
+
         return `
           <tr class="${rowClass}" data-id="${p.id}" style="animation-delay: ${Math.min(i * 18, 200)}ms;">
             <td class="row-time">
@@ -2730,6 +2828,8 @@
             <td>${Utils.esc(p.acceptedBy || '—')}</td>
             <td>${Utils.esc(p.putAwayBy || '—')}</td>
             <td>${UI.statusBadge(p.status)}</td>
+            <td>${locCell}</td>
+            <td>${contentsCell}</td>
             <td><div class="row-notes" title="${Utils.esc(p.notes || '')}">${Utils.esc(p.notes || '')}</div></td>
             <td>
               <div class="row-actions">
@@ -2762,6 +2862,7 @@
       UI.renderStats();
       UI.renderTable();
       UI.renderEmployeeDatalist();
+      UI.renderLocationDatalist();
       Calendar.render();
     },
 
@@ -2876,6 +2977,8 @@
         orderedBy: $('#orderedBy').value.trim(),
         acceptedBy: $('#acceptedBy').value.trim(),
         putAwayBy: $('#putAwayBy').value.trim(),
+        location: $('#location').value.trim(),
+        contents: $('#contents').value.trim(),
         notes: $('#notes').value.trim(),
         status: $('#status').value,
         archived: false,
@@ -2943,6 +3046,8 @@
       $('#editAcceptedBy').value      = pkg.acceptedBy || '';
       $('#editPutAwayBy').value       = pkg.putAwayBy || '';
       $('#editStatus').value          = pkg.status || 'pending';
+      $('#editLocation').value        = pkg.location || '';
+      $('#editContents').value        = pkg.contents || '';
       $('#editNotes').value           = pkg.notes || '';
       $('#archiveBtnLabel').textContent = pkg.archived ? 'Unarchive' : 'Archive';
       UI.openModal($('#editModal'));
@@ -2964,6 +3069,8 @@
         acceptedBy: $('#editAcceptedBy').value.trim(),
         putAwayBy: $('#editPutAwayBy').value.trim(),
         status: $('#editStatus').value,
+        location: $('#editLocation').value.trim(),
+        contents: $('#editContents').value.trim(),
         notes: $('#editNotes').value.trim(),
       };
       if (!patch.packageType) {
@@ -3050,6 +3157,8 @@
         { key: 'acceptedBy',      label: 'Accepted By' },
         { key: 'putAwayBy',       label: 'Put Away By' },
         { key: 'status',          label: 'Status' },
+        { key: 'location',        label: 'Location' },
+        { key: 'contents',        label: 'Contents' },
         { key: 'notes',           label: 'Notes' },
         { key: 'completedAt',     label: 'Completed At' },
         { key: 'archived',        label: 'Archived' },
@@ -3095,6 +3204,8 @@
               acceptedBy: get(r, 'Accepted By') || '',
               putAwayBy: get(r, 'Put Away By') || '',
               status: (get(r, 'Status') || 'pending').toLowerCase(),
+              location: get(r, 'Location') || '',
+              contents: get(r, 'Contents') || '',
               notes: get(r, 'Notes') || '',
               completedAt: get(r, 'Completed At') || '',
               archived: /^(true|1|yes)$/i.test(get(r, 'Archived') || ''),
@@ -3307,6 +3418,91 @@
   };
 
   /* ---------------------------------------------------------------------------
+     MASCOT — Pico, the friendly package
+     ---------------------------------------------------------------------------
+     A small, original cardboard-box character in the bottom-right corner.
+     - Breathes constantly (subtle CSS animation)
+     - Blinks occasionally
+     - Waves every 30s; pauses when the tab is hidden
+     - Greets with a speech bubble on unlock and on click
+     - Hidden on small screens and during print
+     - Respects prefers-reduced-motion
+     --------------------------------------------------------------------------- */
+  const Mascot = {
+    greetings: [
+      'Hi there!',
+      'Welcome back!',
+      'Hello, friend!',
+      'Good to see you!',
+      'Hey there!',
+      'Howdy!',
+    ],
+    waveInterval: null,
+    bubbleTimeout: null,
+    el: null,
+
+    init() {
+      this.el = document.getElementById('mascot');
+      if (!this.el) return;
+
+      // Reveal with entrance animation
+      setTimeout(() => this.el.classList.add('mascot-shown'), 220);
+
+      // Initial greeting shortly after he appears
+      setTimeout(() => this.greet(), 900);
+
+      // Periodic wave every 30 seconds
+      this.startInterval();
+
+      // Click for a fresh greeting
+      const body = document.getElementById('mascotBody');
+      if (body) body.addEventListener('click', () => this.greet());
+
+      // Pause waving when the tab is hidden (saves cycles, also less weird
+      // if someone glances back at the tab right when he randomly waves)
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) this.stopInterval();
+        else this.startInterval();
+      });
+    },
+
+    startInterval() {
+      if (this.waveInterval) return;
+      this.waveInterval = setInterval(() => this.wave(), 30000);
+    },
+
+    stopInterval() {
+      if (this.waveInterval) {
+        clearInterval(this.waveInterval);
+        this.waveInterval = null;
+      }
+    },
+
+    /** Trigger the wave animation (restarts cleanly even if mid-wave). */
+    wave() {
+      if (!this.el) return;
+      this.el.classList.remove('waving');
+      // Force reflow so the animation restarts when the class is re-added
+      void this.el.offsetWidth;
+      this.el.classList.add('waving');
+    },
+
+    /** Wave + speech bubble with a random greeting. */
+    greet() {
+      if (!this.el) return;
+      this.wave();
+      const msg = this.greetings[Math.floor(Math.random() * this.greetings.length)];
+      const msgEl = document.getElementById('mascotMessage');
+      if (msgEl) msgEl.textContent = msg;
+      this.el.classList.add('greeting');
+      clearTimeout(this.bubbleTimeout);
+      this.bubbleTimeout = setTimeout(() => {
+        this.el.classList.remove('greeting');
+      }, 2600);
+    },
+  };
+
+  /* ---------------------------------------------------------------------------
      INIT
      --------------------------------------------------------------------------- */
   async function init() {
@@ -3404,6 +3600,9 @@
 
     // 15. Hide loader
     setTimeout(() => { $('#loader').classList.add('hidden'); }, 350);
+
+    // 16. Pico the mascot — waves hi
+    Mascot.init();
 
     // Welcome toast (skip on session-restore unlock to avoid noise)
     if (!silent) {
