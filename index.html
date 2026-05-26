@@ -2797,6 +2797,12 @@
           ? `<button class="btn btn-success btn-sm" data-action="putaway" data-id="${p.id}" title="Mark as Put Away" aria-label="Mark as Put Away">${ICONS.putaway}</button>`
           : '';
 
+        const markCompleteBtn = (p.status === 'pending' || p.status === 'put-away')
+          ? `<button class="btn btn-sm" data-action="complete" data-id="${p.id}" title="Mark as Completed" aria-label="Mark as Completed" style="background:var(--success-soft);color:var(--success);border-color:transparent;">
+               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/><polyline points="7 13 10 16 17 9"/></svg>
+             </button>`
+          : '';
+
         const qty = Number(p.quantity) || 1;
         const qtyCell = qty > 1
           ? `<span class="qty-badge qty-badge-multi"><strong>${qty}</strong>×</span>`
@@ -2834,6 +2840,7 @@
             <td>
               <div class="row-actions">
                 ${markPutAwayBtn}
+                ${markCompleteBtn}
                 <button class="btn btn-ghost btn-sm" data-action="edit" data-id="${p.id}" aria-label="Edit" title="Edit">${ICONS.edit}</button>
                 <button class="btn btn-ghost btn-sm" data-action="delete" data-id="${p.id}" aria-label="Delete" title="Delete">${ICONS.trash}</button>
               </div>
@@ -3018,9 +3025,10 @@
       const pkg = Store.get(id);
       if (!pkg) return;
 
-      if (action === 'edit')    Handlers.openEdit(pkg);
-      if (action === 'delete')  Handlers.askDelete(pkg);
-      if (action === 'putaway') Handlers.markPutAway(pkg);
+      if (action === 'edit')     Handlers.openEdit(pkg);
+      if (action === 'delete')   Handlers.askDelete(pkg);
+      if (action === 'putaway')  Handlers.markPutAway(pkg);
+      if (action === 'complete') Handlers.markComplete(pkg);
     },
 
     /** One-click mark put-away. */
@@ -3031,6 +3039,16 @@
       });
       UI.render();
       UI.toast('success', 'Marked put-away', updated?.packageType || '');
+    },
+
+    /** One-click mark completed. */
+    markComplete(pkg) {
+      const updated = Store.update(pkg.id, {
+        status: 'completed',
+        completedAt: new Date().toISOString(),
+      });
+      UI.render();
+      UI.toast('success', 'Marked completed', updated?.packageType || '');
     },
 
     /** Open the edit modal pre-filled. */
