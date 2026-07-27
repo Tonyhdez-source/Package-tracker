@@ -1298,6 +1298,31 @@
       .cal-dot { width: 4px; height: 4px; }
     }
 
+    /* Collapsible card body */
+    .card-body-collapsible {
+      display: grid;
+      grid-template-rows: 1fr;
+      transition: grid-template-rows 320ms var(--ease-out), opacity 280ms var(--ease-out);
+      opacity: 1;
+    }
+    .card-body-collapsible.collapsed {
+      grid-template-rows: 0fr;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .card-body-collapsible > .card-body-inner {
+      overflow: hidden;
+    }
+
+    /* Chevron icon rotation on collapse */
+    .collapse-chevron {
+      transition: transform 300ms var(--ease-out);
+      flex-shrink: 0;
+    }
+    .collapsed-state .collapse-chevron {
+      transform: rotate(-90deg);
+    }
+
     /* Location badge in table */
     .loc-badge {
       display: inline-flex;
@@ -1513,7 +1538,331 @@
     }
 
     /* =========================================================================
-       PRINT
+       STAFF PICKER SCREEN
+       ========================================================================= */
+    .staff-picker {
+      position: fixed;
+      inset: 0;
+      z-index: 95;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background:
+        radial-gradient(60% 50% at 50% 0%, rgba(96, 165, 250, 0.14), transparent 70%),
+        var(--bg-base);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 320ms var(--ease-out), visibility 320ms var(--ease-out);
+    }
+    [data-theme="light"] .staff-picker {
+      background: radial-gradient(60% 50% at 50% 0%, rgba(37,99,235,0.10), transparent 70%), var(--bg-base);
+    }
+    .staff-picker.open { opacity: 1; visibility: visible; }
+    .staff-picker.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .staff-card {
+      width: 100%;
+      max-width: 480px;
+      padding: 32px 28px 28px;
+      border-radius: var(--radius-xl);
+      background: var(--bg-glass-strong);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+      animation: lock-in 380ms var(--ease-out) both;
+    }
+    .staff-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 600;
+      margin: 14px 0 6px;
+      color: var(--text-primary);
+    }
+    .staff-sub { font-size: 13px; color: var(--text-secondary); margin: 0 0 24px; }
+
+    .staff-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    @media (min-width: 400px) {
+      .staff-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    .staff-btn {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 10px;
+      border-radius: var(--radius);
+      background: var(--bg-surface);
+      border: 1.5px solid var(--border);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all var(--dur-fast) var(--ease-out);
+      cursor: pointer;
+    }
+    .staff-btn:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      transform: translateY(-2px);
+    }
+    .staff-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-active));
+      display: grid; place-items: center;
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    /* Notification badge on staff button */
+    .staff-notif-badge {
+      position: absolute;
+      top: 6px; right: 6px;
+      min-width: 18px; height: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: var(--danger);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      display: grid; place-items: center;
+      box-shadow: 0 0 0 2px var(--bg-surface);
+      font-family: var(--font-mono);
+    }
+
+    /* Current user chip in header */
+    .user-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 10px 5px 6px;
+      border-radius: 999px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all var(--dur-fast) var(--ease-out);
+    }
+    .user-chip:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .user-chip-avatar {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-active));
+      display: grid; place-items: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    /* =========================================================================
+       NOTIFICATION BANNER
+       ========================================================================= */
+    .notif-banner {
+      display: none;
+      margin: 0 0 0;
+      padding: 12px 18px;
+      background: linear-gradient(90deg, var(--accent-soft), transparent);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 13.5px;
+      color: var(--text-primary);
+      align-items: center;
+      gap: 10px;
+      animation: row-in 280ms var(--ease-out);
+    }
+    .notif-banner.visible { display: flex; }
+    .notif-banner svg { width: 16px; height: 16px; color: var(--accent); flex-shrink: 0; }
+    .notif-banner strong { font-weight: 600; }
+    .notif-banner-close {
+      margin-left: auto;
+      color: var(--text-tertiary);
+      padding: 2px;
+    }
+    .notif-banner-close:hover { color: var(--text-primary); }
+
+    /* =========================================================================
+       CLAIM BUTTON
+       ========================================================================= */
+    .btn-claim {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: transparent;
+      font-size: 11px;
+      padding: 4px 8px;
+      min-height: 26px;
+      border-radius: var(--radius-xs);
+    }
+    .btn-claim:hover { background: var(--accent); color: white; border-color: transparent; }
+    .claim-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .claim-chip svg { width: 11px; height: 11px; }
+
+    /* =========================================================================
+       TABS (for Activity Log & Shift Notes panel)
+       ========================================================================= */
+    .panel-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      background: var(--bg-surface);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+    }
+    .panel-tab {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all var(--dur-fast) var(--ease-out);
+      text-align: center;
+    }
+    .panel-tab:hover { color: var(--text-primary); }
+    .panel-tab.active {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-xs);
+    }
+    .panel-tab-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 16px; height: 16px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 0 4px;
+      margin-left: 5px;
+      vertical-align: middle;
+    }
+    .panel-content { display: none; }
+    .panel-content.active { display: block; }
+
+    /* =========================================================================
+       ACTIVITY LOG
+       ========================================================================= */
+    .activity-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+    .activity-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 10px 4px;
+      border-bottom: 1px solid var(--border);
+      animation: row-in 200ms var(--ease-out);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .activity-dot svg { width: 13px; height: 13px; }
+    .activity-dot-add     { background: var(--success-soft);  color: var(--success); }
+    .activity-dot-edit    { background: var(--accent-soft);   color: var(--accent); }
+    .activity-dot-status  { background: var(--warning-soft);  color: var(--warning); }
+    .activity-dot-delete  { background: var(--danger-soft);   color: var(--danger); }
+    .activity-dot-claim   { background: var(--accent-soft);   color: var(--accent); }
+    .activity-dot-note    { background: var(--success-soft);  color: var(--success); }
+    .activity-body { flex: 1; min-width: 0; }
+    .activity-text { font-size: 13.5px; color: var(--text-primary); line-height: 1.4; }
+    .activity-text strong { font-weight: 600; }
+    .activity-meta {
+      font-size: 11.5px;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+      font-family: var(--font-mono);
+    }
+    .activity-empty {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--text-tertiary);
+      font-size: 13px;
+    }
+
+    /* =========================================================================
+       SHIFT NOTES
+       ========================================================================= */
+    .shift-note-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    .shift-note {
+      display: flex;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      animation: row-in 200ms var(--ease-out);
+    }
+    .shift-note-body { flex: 1; min-width: 0; }
+    .shift-note-text { font-size: 13.5px; color: var(--text-primary); line-height: 1.4; }
+    .shift-note-meta {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-top: 3px;
+      font-family: var(--font-mono);
+    }
+    .shift-note-delete {
+      color: var(--text-tertiary);
+      padding: 2px;
+      flex-shrink: 0;
+    }
+    .shift-note-delete:hover { color: var(--danger); }
+    .shift-note-input-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .shift-note-input-wrap textarea {
+      flex: 1;
+      min-height: 54px;
+      resize: none;
+    }
+    .shift-note-empty {
+      text-align: center;
+      padding: 24px 16px;
+      color: var(--text-tertiary);
+      font-size: 13px;
+      font-style: italic;
+    }
+
+    /* =========================================================================
+       PRINT (update to hide new panels)
        ========================================================================= */
     @media print {
       :root {
@@ -1526,7 +1875,8 @@
       .header, .quick-pills, .form-actions, .row-actions, .filter-bar,
       #entryForm, .toasts, .modal-backdrop, .btn-ghost, #archiveToggleBtn,
       .card-actions, .stat::after, .lock, .sync-pill,
-      #calendarCard, .filter-chip, .mascot { display: none !important; }
+      #calendarCard, .filter-chip, .mascot,
+      .staff-picker, #teamPanelCard, .notif-banner { display: none !important; }
       .card { box-shadow: none; border: 1px solid #ccc; background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none; }
       .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
       table { font-size: 11pt; min-width: 0; }
@@ -1607,8 +1957,23 @@
     </div>
   </div>
   <!-- ========================================================================
-       LOADING SCREEN
+       STAFF PICKER — shown after passcode, before the app
        ======================================================================== -->
+  <div class="staff-picker" id="staffPicker" role="dialog" aria-modal="true" aria-labelledby="staffTitle" aria-hidden="true">
+    <div class="staff-card">
+      <div class="lock-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <h2 class="staff-title" id="staffTitle">Who are you?</h2>
+      <p class="staff-sub">Select your name to get started. Your packages will be highlighted.</p>
+      <div class="staff-grid" id="staffGrid"></div>
+    </div>
+  </div>
   <div class="loader" id="loader" aria-hidden="true">
     <div class="loader-inner">
       <div class="loader-mark" aria-hidden="true">
@@ -1650,6 +2015,11 @@
           <span class="sync-dot" aria-hidden="true"></span>
           <span class="sync-label" id="syncLabel">Local</span>
         </div>
+        <!-- Current user chip — click to switch user -->
+        <button class="user-chip" id="userChip" type="button" aria-label="Switch user" title="Switch user" style="display:none;">
+          <span class="user-chip-avatar" id="userChipAvatar">?</span>
+          <span id="userChipName">—</span>
+        </button>
         <button class="btn btn-ghost btn-icon" id="themeToggle" type="button" aria-label="Toggle theme" title="Toggle theme">
           <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -1717,6 +2087,52 @@
         </div>
         <div class="stat-value" id="statCompleted">0</div>
         <div class="stat-meta" id="statCompletedMeta">put-away today</div>
+      </div>
+    </section>
+
+    <!-- Notification banner — shown when current user has packages waiting -->
+    <div class="notif-banner" id="notifBanner" role="alert">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="notifBannerText"><strong>You have packages waiting!</strong></span>
+      <button class="notif-banner-close btn-ghost btn" type="button" id="notifBannerClose" aria-label="Dismiss">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Team Panel: Activity Log + Shift Notes -->
+    <section class="card" id="teamPanelCard" aria-labelledby="teamPanelTitle">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title" id="teamPanelTitle">Team Panel</h2>
+          <div class="card-subtitle">Shift notes &amp; activity history.</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="panel-tabs" role="tablist">
+          <button class="panel-tab active" id="tabShiftNotes" role="tab" aria-selected="true" aria-controls="panelShiftNotes" type="button">
+            📋 Shift Notes
+          </button>
+          <button class="panel-tab" id="tabActivity" role="tab" aria-selected="false" aria-controls="panelActivity" type="button">
+            🕐 Activity Log
+            <span class="panel-tab-badge" id="activityBadge" style="display:none;">0</span>
+          </button>
+        </div>
+
+        <!-- Shift Notes -->
+        <div class="panel-content active" id="panelShiftNotes" role="tabpanel">
+          <div class="shift-note-list" id="shiftNoteList"></div>
+          <div class="shift-note-input-wrap">
+            <textarea id="shiftNoteInput" placeholder="Leave a note for the team… (e.g. FedEx coming back at 3pm, Fridge A is full)"></textarea>
+            <button class="btn btn-primary" type="button" id="shiftNoteSubmit" style="min-height:54px;padding:0 16px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="panel-content" id="panelActivity" role="tabpanel">
+          <div class="activity-list" id="activityList"></div>
+        </div>
       </div>
     </section>
 
@@ -1792,17 +2208,23 @@
 
             <div class="field">
               <label class="field-label" for="orderedBy">Ordered By</label>
-              <input type="text" id="orderedBy" name="orderedBy" list="employeeList" placeholder="Staff name" />
+              <select id="orderedBy" name="orderedBy">
+                <option value="">Select…</option>
+              </select>
             </div>
 
             <div class="field">
               <label class="field-label" for="acceptedBy">Accepted By</label>
-              <input type="text" id="acceptedBy" name="acceptedBy" list="employeeList" placeholder="Who received it" />
+              <select id="acceptedBy" name="acceptedBy">
+                <option value="">Select…</option>
+              </select>
             </div>
 
             <div class="field">
               <label class="field-label" for="putAwayBy">Put Away By</label>
-              <input type="text" id="putAwayBy" name="putAwayBy" list="employeeList" placeholder="Optional" />
+              <select id="putAwayBy" name="putAwayBy">
+                <option value="">Select…</option>
+              </select>
             </div>
 
             <div class="field">
@@ -1851,13 +2273,16 @@
     </section>
 
     <!-- Deliveries Table -->
-    <section class="card" aria-labelledby="logTitle">
-      <div class="card-header">
-        <div>
-          <h2 class="card-title" id="logTitle">Delivery Log</h2>
-          <div class="card-subtitle" id="logSubtitle">All recorded packages, newest first.</div>
+    <section class="card" id="logCard" aria-labelledby="logTitle">
+      <div class="card-header" style="cursor:pointer;" id="logCardHeader">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+          <svg class="collapse-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:var(--text-tertiary);flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+          <div>
+            <h2 class="card-title" id="logTitle">Delivery Log</h2>
+            <div class="card-subtitle" id="logSubtitle">All recorded packages, newest first.</div>
+          </div>
         </div>
-        <div class="card-actions">
+        <div class="card-actions" id="logCardActions">
           <button class="btn btn-ghost btn-sm" type="button" id="archiveToggleBtn" aria-pressed="false">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
             <span id="archiveLabel">Show Archived</span>
@@ -1874,6 +2299,8 @@
         </div>
       </div>
 
+      <div class="card-body-collapsible" id="logCardCollapsible">
+        <div class="card-body-inner">
       <div class="card-body">
         <div class="filter-bar" role="search">
           <div class="search-wrap">
@@ -1928,6 +2355,8 @@
           <div class="empty-text" id="emptyText">Use the form above to record your first package. Everything saves automatically to this device.</div>
         </div>
       </div>
+        </div><!-- /.card-body-inner -->
+      </div><!-- /.card-body-collapsible -->
     </section>
     <!-- Calendar (below the log so it's a reference rather than a primary entry surface) -->
     <section class="card" id="calendarCard" aria-labelledby="calendarTitle">
@@ -2031,15 +2460,21 @@
             </div>
             <div class="field">
               <label class="field-label" for="editOrderedBy">Ordered By</label>
-              <input type="text" id="editOrderedBy" list="employeeList" />
+              <select id="editOrderedBy">
+                <option value="">Select…</option>
+              </select>
             </div>
             <div class="field">
               <label class="field-label" for="editAcceptedBy">Accepted By</label>
-              <input type="text" id="editAcceptedBy" list="employeeList" />
+              <select id="editAcceptedBy">
+                <option value="">Select…</option>
+              </select>
             </div>
             <div class="field">
               <label class="field-label" for="editPutAwayBy">Put Away By</label>
-              <input type="text" id="editPutAwayBy" list="employeeList" />
+              <select id="editPutAwayBy">
+                <option value="">Select…</option>
+              </select>
             </div>
             <div class="field">
               <label class="field-label" for="editStatus">Status</label>
@@ -2146,7 +2581,14 @@
         See README.md for full setup including Firestore security rules.
      --------------------------------------------------------------------------- */
   const APP_CONFIG = {
-    passcode: '2005',
+    passcode: '1997',
+
+    // Staff members — edit this list to add/remove people
+    staff: ['Tony', 'Junior', 'Alaina', 'Jackie', 'Chamon', 'Matt'],
+
+    // Shift window (used to auto-clear old shift notes Mon-Fri only)
+    shiftStart: '06:30',
+    shiftEnd:   '17:00',
 
     firebase: {
       apiKey: 'AIzaSyA-fGjCSmFNOvASgphDzOwdJaMmhTFuO7o',
@@ -2157,17 +2599,19 @@
       appId: '1:1068881323681:web:58823d0c8062706411f2e0',
     },
 
-    // Firestore collection where packages are stored
     collectionName: 'packages',
   };
 
   /* ---------------------------------------------------------------------------
      CONSTANTS
      --------------------------------------------------------------------------- */
-  const STORAGE_KEY  = 'mo_pkg_tracker_v1';
-  const THEME_KEY    = 'mo_pkg_tracker_theme';
-  const UNLOCK_KEY   = 'mo_pkg_tracker_unlocked';
-  const TOAST_TTL    = 3800;
+  const STORAGE_KEY       = 'mo_pkg_tracker_v1';
+  const THEME_KEY         = 'mo_pkg_tracker_theme';
+  const UNLOCK_KEY        = 'mo_pkg_tracker_unlocked';
+  const CURRENT_USER_KEY  = 'mo_pkg_tracker_user';
+  const ACTIVITY_KEY      = 'mo_pkg_tracker_activity';
+  const SHIFT_NOTES_KEY   = 'mo_pkg_tracker_shift_notes';
+  const TOAST_TTL         = 3800;
 
   // Quick-entry presets: one tap to pre-fill the form for the most common cases.
   const QUICK_PRESETS = [
@@ -2817,14 +3261,24 @@
           ? `<div class="row-contents" title="${Utils.esc(p.contents)}">${Utils.esc(p.contents)}</div>`
           : `<span class="row-contents-empty">—</span>`;
 
+        const isMyPackage = CurrentUser.name && p.orderedBy === CurrentUser.name;
+        const claimBtn = (p.status === 'pending' && !p.claimedBy)
+          ? `<button class="btn btn-claim btn-sm" data-action="claim" data-id="${p.id}" title="Claim this package" aria-label="Claim">Claim</button>`
+          : p.claimedBy
+            ? `<span class="claim-chip" title="Claimed by ${Utils.esc(p.claimedBy)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>${Utils.esc(p.claimedBy)}</span>`
+            : '';
+
+        // Highlight rows ordered by the current logged-in user
+        if (isMyPackage) rowClass += ' row-mine';
+
         return `
-          <tr class="${rowClass}" data-id="${p.id}" style="animation-delay: ${Math.min(i * 18, 200)}ms;">
+          <tr class="${rowClass}" data-id="${p.id}" style="animation-delay: ${Math.min(i * 18, 200)}ms;${isMyPackage ? 'box-shadow: inset 3px 0 0 var(--accent);' : ''}">
             <td class="row-time">
               <strong>${Utils.esc(t.time)}</strong>
               <span>${Utils.esc(t.date)}</span>
             </td>
             <td>
-              <div style="font-weight:500;">${Utils.esc(p.packageType || '—')}</div>
+              <div style="font-weight:500;">${Utils.esc(p.packageType || '—')}${isMyPackage ? ' <span style="font-size:10px;color:var(--accent);font-weight:600;"> YOURS</span>' : ''}</div>
               ${p.trackingNumber ? `<div class="row-tracking">${Utils.esc(p.trackingNumber)}</div>` : ''}
             </td>
             <td>${qtyCell}</td>
@@ -2832,7 +3286,7 @@
             <td>${Utils.esc(p.courier || '—')}</td>
             <td>${Utils.esc(p.orderedBy || '—')}</td>
             <td>${Utils.esc(p.acceptedBy || '—')}</td>
-            <td>${Utils.esc(p.putAwayBy || '—')}</td>
+            <td>${Utils.esc(p.putAwayBy || '—')}${claimBtn ? `<br>${claimBtn}` : ''}</td>
             <td>${UI.statusBadge(p.status)}</td>
             <td>${locCell}</td>
             <td>${contentsCell}</td>
@@ -2868,9 +3322,56 @@
     render() {
       UI.renderStats();
       UI.renderTable();
-      UI.renderEmployeeDatalist();
+      UI.renderStaffSelects();
       UI.renderLocationDatalist();
+      UI.renderNotifBanner();
+      ActivityLog.render();
+      ShiftNotes.render();
       Calendar.render();
+    },
+
+    /** Populate all staff <select> dropdowns with the staff list. */
+    renderStaffSelects() {
+      const opts = `<option value="">Select…</option>` +
+        APP_CONFIG.staff.map(s => `<option value="${Utils.esc(s)}">${Utils.esc(s)}</option>`).join('');
+      ['#orderedBy','#acceptedBy','#putAwayBy','#editOrderedBy','#editAcceptedBy','#editPutAwayBy'].forEach(sel => {
+        const el = $(sel);
+        if (!el) return;
+        const cur = el.value;
+        el.innerHTML = opts;
+        if (cur) el.value = cur;
+      });
+    },
+
+    /** Activity badge on the tab. */
+    renderActivityBadge() {
+      const badge = $('#activityBadge');
+      if (!badge) return;
+      const count = ActivityLog.newCount;
+      badge.textContent = count;
+      badge.style.display = count > 0 ? 'inline-flex' : 'none';
+    },
+
+    /** Notification banner for current user's pending packages. */
+    renderNotifBanner() {
+      const banner = $('#notifBanner');
+      if (!banner || !CurrentUser.name) { if (banner) banner.classList.remove('visible'); return; }
+      const pending = Storage.getAll().filter(p =>
+        p.status === 'pending' && !p.archived && p.orderedBy === CurrentUser.name
+      );
+      if (pending.length > 0) {
+        const names = pending.map(p => p.packageType).join(', ');
+        $('#notifBannerText').innerHTML =
+          `<strong>Hey ${Utils.esc(CurrentUser.name)}!</strong> You have ${pending.length} package${pending.length > 1 ? 's' : ''} waiting: ${Utils.esc(names)}.`;
+        banner.classList.add('visible');
+      } else {
+        banner.classList.remove('visible');
+      }
+    },
+
+    /** Re-render the activity log panel. */
+    renderActivityLog() {
+      ActivityLog.render();
     },
 
     /** Update the sync indicator pill in the header. */
@@ -3013,6 +3514,7 @@
       UI.render();
       Handlers.resetEntryForm();
       const qtyLabel = data.quantity > 1 ? `${data.quantity}× ` : '';
+      ActivityLog.add('add', `Logged ${qtyLabel}${data.packageType} from ${data.courier || 'unknown courier'} ordered by ${data.orderedBy || 'unknown'}`, data);
       UI.toast('success', 'Package saved', `${qtyLabel}${data.packageType} · ${data.courier || 'no courier'}`);
     },
 
@@ -3029,26 +3531,32 @@
       if (action === 'delete')   Handlers.askDelete(pkg);
       if (action === 'putaway')  Handlers.markPutAway(pkg);
       if (action === 'complete') Handlers.markComplete(pkg);
+      if (action === 'claim')    Handlers.claimPackage(pkg);
     },
 
     /** One-click mark put-away. */
     markPutAway(pkg) {
-      const updated = Store.update(pkg.id, {
-        status: 'put-away',
-        completedAt: new Date().toISOString(),
-      });
+      const updated = Store.update(pkg.id, { status: 'put-away', completedAt: new Date().toISOString() });
+      ActivityLog.add('status', `Marked "${pkg.packageType}" as Put Away`, pkg);
       UI.render();
       UI.toast('success', 'Marked put-away', updated?.packageType || '');
     },
 
     /** One-click mark completed. */
     markComplete(pkg) {
-      const updated = Store.update(pkg.id, {
-        status: 'completed',
-        completedAt: new Date().toISOString(),
-      });
+      const updated = Store.update(pkg.id, { status: 'completed', completedAt: new Date().toISOString() });
+      ActivityLog.add('status', `Marked "${pkg.packageType}" as Completed`, pkg);
       UI.render();
       UI.toast('success', 'Marked completed', updated?.packageType || '');
+    },
+
+    /** Claim a pending package so others know you're handling it. */
+    claimPackage(pkg) {
+      const who = CurrentUser.name || 'Someone';
+      Store.update(pkg.id, { claimedBy: who });
+      ActivityLog.add('claim', `Claimed "${pkg.packageType}" ordered by ${pkg.orderedBy || 'unknown'}`, pkg);
+      UI.render();
+      UI.toast('info', 'Package claimed', `${who} is handling this one.`);
     },
 
     /** Open the edit modal pre-filled. */
@@ -3101,6 +3609,7 @@
       if (stamp && wasOpen) patch.completedAt = new Date().toISOString();
 
       Store.update(id, patch);
+      ActivityLog.add('edit', `Edited "${patch.packageType}" — status: ${patch.status}`, patch);
       UI.closeModal($('#editModal'));
       UI.render();
       UI.toast('success', 'Changes saved', patch.packageType);
@@ -3133,6 +3642,7 @@
       const id = modal.dataset.id;
       if (!id) return;
       const pkg = Store.get(id);
+      ActivityLog.add('delete', `Deleted "${pkg?.packageType || 'package'}" from ${pkg?.courier || 'unknown courier'}`, pkg);
       Store.remove(id);
       UI.closeModal(modal);
       UI.render();
@@ -3521,24 +4031,300 @@
   };
 
   /* ---------------------------------------------------------------------------
+     CURRENT USER — who is logged in this session
+     --------------------------------------------------------------------------- */
+  const CurrentUser = {
+    name: null,
+
+    load() {
+      const saved = sessionStorage.getItem(CURRENT_USER_KEY);
+      if (saved && APP_CONFIG.staff.includes(saved)) this.name = saved;
+    },
+
+    set(name) {
+      this.name = name;
+      sessionStorage.setItem(CURRENT_USER_KEY, name);
+      // Update header chip
+      const chip   = $('#userChip');
+      const avatar = $('#userChipAvatar');
+      const label  = $('#userChipName');
+      if (chip && avatar && label) {
+        chip.style.display = 'inline-flex';
+        avatar.textContent = name[0].toUpperCase();
+        label.textContent  = name;
+      }
+    },
+
+    clear() {
+      this.name = null;
+      sessionStorage.removeItem(CURRENT_USER_KEY);
+      const chip = $('#userChip');
+      if (chip) chip.style.display = 'none';
+    },
+  };
+
+  /* ---------------------------------------------------------------------------
+     STAFF PICKER — "who are you?" screen shown after passcode
+     --------------------------------------------------------------------------- */
+  const StaffPicker = {
+    onPicked: null,
+
+    init(onPicked) {
+      this.onPicked = onPicked;
+      this.renderGrid();
+    },
+
+    renderGrid() {
+      const grid = $('#staffGrid');
+      if (!grid) return;
+
+      // Count pending packages for each staff member for notification badges
+      const packages = Storage.getAll();
+      const pendingFor = {};
+      APP_CONFIG.staff.forEach(s => { pendingFor[s] = 0; });
+      packages.forEach(p => {
+        if (p.status === 'pending' && !p.archived && p.orderedBy && pendingFor[p.orderedBy] !== undefined) {
+          pendingFor[p.orderedBy]++;
+        }
+      });
+
+      grid.innerHTML = APP_CONFIG.staff.map(name => {
+        const count = pendingFor[name] || 0;
+        const badge = count > 0
+          ? `<span class="staff-notif-badge" title="${count} package${count > 1 ? 's' : ''} waiting">${count}</span>`
+          : '';
+        return `
+          <button type="button" class="staff-btn" data-name="${Utils.esc(name)}">
+            ${badge}
+            <div class="staff-avatar">${name[0].toUpperCase()}</div>
+            <span>${Utils.esc(name)}</span>
+          </button>
+        `;
+      }).join('');
+
+      grid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.staff-btn');
+        if (!btn) return;
+        this.pick(btn.dataset.name);
+      });
+    },
+
+    show() {
+      const el = $('#staffPicker');
+      if (!el) return;
+      // Re-render grid so notification badges are fresh
+      this.renderGrid();
+      el.classList.add('open');
+      el.classList.remove('hidden');
+      el.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    },
+
+    hide() {
+      const el = $('#staffPicker');
+      if (!el) return;
+      el.classList.remove('open');
+      el.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    },
+
+    pick(name) {
+      CurrentUser.set(name);
+      this.hide();
+      if (this.onPicked) this.onPicked(name);
+    },
+  };
+
+  /* ---------------------------------------------------------------------------
+     ACTIVITY LOG — every action recorded forever
+     --------------------------------------------------------------------------- */
+  const ActivityLog = {
+    entries: [],
+    newCount: 0,   // unseen since last tab open
+
+    load() {
+      try {
+        const raw = localStorage.getItem(ACTIVITY_KEY);
+        if (raw) this.entries = JSON.parse(raw);
+      } catch (e) { this.entries = []; }
+    },
+
+    save() {
+      try { localStorage.setItem(ACTIVITY_KEY, JSON.stringify(this.entries)); } catch (e) {}
+    },
+
+    add(type, text, pkg) {
+      const entry = {
+        id: Utils.uuid(),
+        type,           // 'add' | 'edit' | 'status' | 'delete' | 'claim' | 'note'
+        text,
+        who: CurrentUser.name || 'Unknown',
+        at: new Date().toISOString(),
+        pkgType: pkg?.packageType || '',
+      };
+      this.entries.unshift(entry);
+      // Keep forever but cap render at 500 for performance
+      this.save();
+      this.newCount++;
+      UI.renderActivityLog();
+      UI.renderActivityBadge();
+    },
+
+    getAll() { return this.entries; },
+
+    render() {
+      const list = $('#activityList');
+      if (!list) return;
+      const entries = this.entries;
+      if (!entries.length) {
+        list.innerHTML = `<div class="activity-empty">No activity recorded yet.</div>`;
+        return;
+      }
+      const iconMap = {
+        add:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+        edit:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>`,
+        status: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+        delete: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>`,
+        claim:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+        note:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+      };
+      list.innerHTML = entries.slice(0, 500).map(e => {
+        const t = Utils.formatReceived(e.at);
+        const timeStr = typeof t === 'object' ? `${t.date} ${t.time}` : t;
+        return `
+          <div class="activity-item">
+            <div class="activity-dot activity-dot-${e.type}">${iconMap[e.type] || ''}</div>
+            <div class="activity-body">
+              <div class="activity-text">${Utils.esc(e.text)}</div>
+              <div class="activity-meta">${Utils.esc(e.who)} · ${Utils.esc(timeStr)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    },
+  };
+
+  /* ---------------------------------------------------------------------------
+     SHIFT NOTES — shared team notepad, weekday-shift scoped
+     --------------------------------------------------------------------------- */
+  const ShiftNotes = {
+    notes: [],
+
+    load() {
+      try {
+        const raw = localStorage.getItem(SHIFT_NOTES_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          // Keep only notes from the current weekday shift
+          const cutoff = this.shiftStart();
+          this.notes = parsed.filter(n => new Date(n.at) >= cutoff);
+        }
+      } catch (e) { this.notes = []; }
+    },
+
+    /** Returns the Date object for when today's shift started (or last weekday). */
+    shiftStart() {
+      const now = new Date();
+      const day = now.getDay(); // 0=Sun, 6=Sat
+      // Go back to last Friday if it's the weekend
+      const daysBack = day === 0 ? 2 : day === 6 ? 1 : 0;
+      const shiftDay = new Date(now);
+      shiftDay.setDate(now.getDate() - daysBack);
+      const [h, m] = APP_CONFIG.shiftStart.split(':').map(Number);
+      shiftDay.setHours(h, m, 0, 0);
+      return shiftDay;
+    },
+
+    save() {
+      try { localStorage.setItem(SHIFT_NOTES_KEY, JSON.stringify(this.notes)); } catch (e) {}
+    },
+
+    add(text) {
+      const note = {
+        id: Utils.uuid(),
+        text: text.trim(),
+        who: CurrentUser.name || 'Unknown',
+        at: new Date().toISOString(),
+      };
+      this.notes.unshift(note);
+      this.save();
+      ActivityLog.add('note', `Left a shift note: "${text.trim().slice(0, 60)}${text.length > 60 ? '…' : ''}"`, null);
+      this.render();
+    },
+
+    remove(id) {
+      this.notes = this.notes.filter(n => n.id !== id);
+      this.save();
+      this.render();
+    },
+
+    render() {
+      const list = $('#shiftNoteList');
+      if (!list) return;
+      if (!this.notes.length) {
+        list.innerHTML = `<div class="shift-note-empty">No notes yet for this shift. Be the first to leave one!</div>`;
+        return;
+      }
+      list.innerHTML = this.notes.map(n => {
+        const t = Utils.formatReceived(n.at);
+        const timeStr = typeof t === 'object' ? `${t.date} ${t.time}` : t;
+        return `
+          <div class="shift-note" data-note-id="${n.id}">
+            <div class="shift-note-body">
+              <div class="shift-note-text">${Utils.esc(n.text)}</div>
+              <div class="shift-note-meta">${Utils.esc(n.who)} · ${Utils.esc(timeStr)}</div>
+            </div>
+            <button type="button" class="shift-note-delete" data-delete-note="${n.id}" aria-label="Delete note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      // Wire delete buttons
+      list.querySelectorAll('[data-delete-note]').forEach(btn => {
+        btn.addEventListener('click', () => ShiftNotes.remove(btn.dataset.deleteNote));
+      });
+    },
+  };
+
+  /* ---------------------------------------------------------------------------
      INIT
      --------------------------------------------------------------------------- */
   async function init() {
-    // 1. Theme first for snappy first paint
     Store.loadTheme();
-
-    // 2. Initialize the lock screen — only proceed to bootApp() once unlocked
-    Lock.init(bootApp);
+    // Lock → Staff Picker → Boot
+    Lock.init(() => {
+      // After passcode: check if we already know who the user is this session
+      CurrentUser.load();
+      if (CurrentUser.name) {
+        bootApp(false);
+      } else {
+        // Show staff picker — boot happens after they pick
+        StaffPicker.init((name) => bootApp(false));
+        StaffPicker.show();
+        // Hide loader while staff picker is showing
+        setTimeout(() => { $('#loader').classList.add('hidden'); }, 350);
+      }
+    });
   }
 
   async function bootApp(silent) {
-    // 3. Initialize storage (loads localStorage, optionally connects Firestore)
+    // 3. Initialize storage
     await Storage.init(() => UI.render());
 
-    // 4. Pre-fill entry form
-    Handlers.resetEntryForm();
+    // 4. Load activity log and shift notes from localStorage
+    ActivityLog.load();
+    ShiftNotes.load();
 
-    // 5. Quick pills
+    // 5. Pre-fill entry form and auto-fill accepted by with current user
+    Handlers.resetEntryForm();
+    if (CurrentUser.name) {
+      const ab = $('#acceptedBy');
+      if (ab) ab.value = CurrentUser.name;
+    }
+
+    // 6. Quick pills
     UI.renderQuickPills();
     $('#quickPills').addEventListener('click', Handlers.onQuickPreset);
 
@@ -3594,15 +4380,88 @@
     $('#themeToggle').addEventListener('click', Handlers.onThemeToggle);
     $('#printBtn').addEventListener('click', Handlers.onPrint);
     $('#lockBtn').addEventListener('click', () => {
+      CurrentUser.clear();
       Lock.lock();
       UI.toast('info', 'Locked', 'Enter the passcode to unlock.');
     });
 
-    // 12b. Calendar
+    // 12b. User chip — click to switch user
+    $('#userChip').addEventListener('click', () => {
+      CurrentUser.clear();
+      StaffPicker.init((name) => {
+        if (CurrentUser.name) {
+          const ab = $('#acceptedBy');
+          if (ab) ab.value = CurrentUser.name;
+        }
+        UI.render();
+      });
+      StaffPicker.show();
+    });
+
+    // 12c. Notification banner dismiss
+    $('#notifBannerClose').addEventListener('click', () => {
+      $('#notifBanner').classList.remove('visible');
+    });
+
+    // 12d. Panel tabs (Shift Notes / Activity Log)
+    $$('.panel-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        $$('.panel-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+        $$('.panel-content').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        const target = tab.getAttribute('aria-controls');
+        const panel = document.getElementById(target);
+        if (panel) panel.classList.add('active');
+        // Clear activity badge when switching to activity tab
+        if (target === 'panelActivity') {
+          ActivityLog.newCount = 0;
+          UI.renderActivityBadge();
+        }
+      });
+    });
+
+    // 12e. Shift note submit
+    const shiftSubmit = $('#shiftNoteSubmit');
+    const shiftInput  = $('#shiftNoteInput');
+    if (shiftSubmit && shiftInput) {
+      shiftSubmit.addEventListener('click', () => {
+        const text = shiftInput.value.trim();
+        if (!text) return;
+        ShiftNotes.add(text);
+        shiftInput.value = '';
+        UI.toast('success', 'Note posted', text.slice(0, 50));
+      });
+      shiftInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+          shiftSubmit.click();
+        }
+      });
+    }
+
+    // 12f. Calendar
     $('#calPrevBtn').addEventListener('click', () => Calendar.prev());
     $('#calNextBtn').addEventListener('click', () => Calendar.next());
     $('#calTodayBtn').addEventListener('click', () => Calendar.jumpToToday());
     $('#calGrid').addEventListener('click', (e) => Calendar.onClick(e));
+
+    // 12g. Delivery Log collapse
+    const logHeader  = $('#logCardHeader');
+    const logBody    = $('#logCardCollapsible');
+    const logCard    = $('#logCard');
+    let logCollapsed = false;
+    if (logHeader) {
+      logHeader.addEventListener('click', (e) => {
+        if (e.target.closest('button, label, input, select')) return;
+        logCollapsed = !logCollapsed;
+        logBody.classList.toggle('collapsed', logCollapsed);
+        logCard.classList.toggle('collapsed-state', logCollapsed);
+        logHeader.setAttribute('aria-expanded', String(!logCollapsed));
+        logHeader.title = logCollapsed ? 'Click to expand' : 'Click to collapse';
+      });
+      logHeader.setAttribute('aria-expanded', 'true');
+      logHeader.title = 'Click to collapse';
+    }
 
     // 13. Live clock
     const updateClock = () => {
