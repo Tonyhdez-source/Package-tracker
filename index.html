@@ -2786,22 +2786,30 @@
       ]);
 
       const app = initializeApp(cfg);
-      this.db = fs.getFirestore(app);
-      this.fs = fs;
 
-      // Persistent offline cache (best-effort; may fail in private/incognito)
+      // Modern persistent cache — replaces the deprecated enableIndexedDbPersistence().
+      // Uses IndexedDB for offline cache AND coordinates across multiple tabs on the
+      // same device, which makes local writes render instantly.
       try {
-        await fs.enableIndexedDbPersistence(this.db);
-      } catch (e) { /* ignore */ }
+        this.db = fs.initializeFirestore(app, {
+          localCache: fs.persistentLocalCache({
+            tabManager: fs.persistentMultipleTabManager(),
+          }),
+        });
+      } catch (e) {
+        // Fallback if the cache initializer isn't available for some reason
+        this.db = fs.getFirestore(app);
+      }
 
+      this.fs = fs;
       this.mode = 'firestore';
 
-      // Real-time listener — fires immediately with cached data, then on every change
+      // Real-time listener — fires immediately from cache, then again on server ack
       this.unsub = fs.onSnapshot(
         fs.collection(this.db, APP_CONFIG.collectionName),
         (snap) => {
           this.packages = snap.docs.map(d => d.data());
-          this.persistLocal();   // mirror to localStorage as offline fallback
+          this.persistLocal();
           this.setStatus(snap.metadata.fromCache ? 'connecting' : 'online');
           if (this.onChange) this.onChange();
         },
@@ -2811,6 +2819,9 @@
           UI.toast('warning', 'Sync interrupted', 'Continuing with local data.');
         }
       );
+
+      // ALSO listen to activity + shift notes collections so team panel is shared
+      TeamData.attachListeners(fs, this.db);
     },
 
     async write(pkg) {
@@ -3023,6 +3034,90 @@
       document.body.appendChild(a); a.click();
       requestAnimationFrame(() => { document.body.removeChild(a); URL.revokeObjectURL(url); });
     },
+  };
+
+  /* ---------------------------------------------------------------------------
+     TEAM DATA — shared activity log & shift notes across all devices
+     ---------------------------------------------------------------------------
+     Uses two Firestore collections that mirror the same interface as packages:
+     "activity" and "shiftNotes". Both fall back to localStorage in local-only
+     mode, but sync across all devices when Firestore is configured. This
+     means when Alaina posts a shift note in the office, Tony sees it on his
+     tablet at the front desk within a second.
+     --------------------------------------------------------------------------- */
+  const TeamData = {
+    fs: null,
+    db: null,
+    activityUnsub: null,
+    notesUnsub: null,
+
+    /** Called by Storage.initFirestore after connection is set up. */
+    attachListeners(fs, db) {
+      this.fs = fs;
+      this.db = db;
+
+      // Activity log listener
+      this.activityUnsub = fs.onSnapshot(
+        fs.collection(db, 'activity'),
+        (snap) => {
+          ActivityLog.entries = snap.docs
+            .map(d => d.data())
+            .sort((a, b) => new Date(b.at) - new Date(a.at));
+          ActivityLog.saveLocal();
+          ActivityLog.render();
+          UI.renderActivityBadge();
+        },
+        (err) => console.error('Activity listener error:', err)
+      );
+
+      // Shift notes listener
+      this.notesUnsub = fs.onSnapshot(
+        fs.collection(db, 'shiftNotes'),
+        (snap) => {
+          const all = snap.docs.map(d => d.data());
+          // Only keep notes since the current shift start
+          const cutoff = ShiftNotes.shiftStart();
+          ShiftNotes.notes = all
+            .filter(n => new Date(n.at) >= cutoff)
+            .sort((a, b) => new Date(b.at) - new Date(a.at));
+          ShiftNotes.saveLocal();
+          ShiftNotes.render();
+        },
+        (err) => console.error('Shift notes listener error:', err)
+      );
+    },
+
+    /** Write an activity entry to Firestore (fire-and-forget). */
+    async writeActivity(entry) {
+      if (!this.fs || !this.db) return;
+      try {
+        await this.fs.setDoc(this.fs.doc(this.db, 'activity', entry.id), entry);
+      } catch (err) {
+        console.error('Activity write failed:', err);
+      }
+    },
+
+    /** Write a shift note to Firestore. */
+    async writeNote(note) {
+      if (!this.fs || !this.db) return;
+      try {
+        await this.fs.setDoc(this.fs.doc(this.db, 'shiftNotes', note.id), note);
+      } catch (err) {
+        console.error('Shift note write failed:', err);
+      }
+    },
+
+    async deleteNote(id) {
+      if (!this.fs || !this.db) return;
+      try {
+        await this.fs.deleteDoc(this.fs.doc(this.db, 'shiftNotes', id));
+      } catch (err) {
+        console.error('Shift note delete failed:', err);
+      }
+    },
+
+    /** Are we syncing team data via Firestore? */
+    isOnline() { return !!(this.fs && this.db); },
   };
 
   /* ---------------------------------------------------------------------------
@@ -4139,7 +4234,7 @@
      --------------------------------------------------------------------------- */
   const ActivityLog = {
     entries: [],
-    newCount: 0,   // unseen since last tab open
+    newCount: 0,
 
     load() {
       try {
@@ -4148,22 +4243,23 @@
       } catch (e) { this.entries = []; }
     },
 
-    save() {
+    saveLocal() {
       try { localStorage.setItem(ACTIVITY_KEY, JSON.stringify(this.entries)); } catch (e) {}
     },
 
     add(type, text, pkg) {
       const entry = {
         id: Utils.uuid(),
-        type,           // 'add' | 'edit' | 'status' | 'delete' | 'claim' | 'note'
+        type,
         text,
         who: CurrentUser.name || 'Unknown',
         at: new Date().toISOString(),
         pkgType: pkg?.packageType || '',
       };
       this.entries.unshift(entry);
-      // Keep forever but cap render at 500 for performance
-      this.save();
+      this.saveLocal();
+      // Fire-and-forget cloud sync — snapshot listener will re-render everywhere
+      TeamData.writeActivity(entry);
       this.newCount++;
       UI.renderActivityLog();
       UI.renderActivityBadge();
@@ -4214,7 +4310,6 @@
         const raw = localStorage.getItem(SHIFT_NOTES_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
-          // Keep only notes from the current weekday shift
           const cutoff = this.shiftStart();
           this.notes = parsed.filter(n => new Date(n.at) >= cutoff);
         }
@@ -4224,8 +4319,7 @@
     /** Returns the Date object for when today's shift started (or last weekday). */
     shiftStart() {
       const now = new Date();
-      const day = now.getDay(); // 0=Sun, 6=Sat
-      // Go back to last Friday if it's the weekend
+      const day = now.getDay();
       const daysBack = day === 0 ? 2 : day === 6 ? 1 : 0;
       const shiftDay = new Date(now);
       shiftDay.setDate(now.getDate() - daysBack);
@@ -4234,7 +4328,7 @@
       return shiftDay;
     },
 
-    save() {
+    saveLocal() {
       try { localStorage.setItem(SHIFT_NOTES_KEY, JSON.stringify(this.notes)); } catch (e) {}
     },
 
@@ -4246,14 +4340,17 @@
         at: new Date().toISOString(),
       };
       this.notes.unshift(note);
-      this.save();
+      this.saveLocal();
+      // Cloud sync — snapshot listener will echo back and re-render everywhere
+      TeamData.writeNote(note);
       ActivityLog.add('note', `Left a shift note: "${text.trim().slice(0, 60)}${text.length > 60 ? '…' : ''}"`, null);
       this.render();
     },
 
     remove(id) {
       this.notes = this.notes.filter(n => n.id !== id);
-      this.save();
+      this.saveLocal();
+      TeamData.deleteNote(id);
       this.render();
     },
 
