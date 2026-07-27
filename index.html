@@ -8,6 +8,7 @@
   <meta name="color-scheme" content="dark light" />
   <title>Front Desk · Package Tracker</title>
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Pkg Tracker" />
 
@@ -3231,10 +3232,12 @@
 
       tbody.innerHTML = rows.map((p, i) => {
         const t = Utils.formatReceived(p.receivedAt);
+        const isMyPackage = CurrentUser.name && p.orderedBy === CurrentUser.name;
         const rowClass = [
           p.temperatureType === 'Cold/Refrigerated' ? 'row-cold' : '',
           p.temperatureType === 'Frozen' ? 'row-frozen' : '',
           p.status === 'pending' ? 'row-pending' : '',
+          isMyPackage ? 'row-mine' : '',
         ].filter(Boolean).join(' ');
 
         const markPutAwayBtn = p.status === 'pending'
@@ -3261,15 +3264,11 @@
           ? `<div class="row-contents" title="${Utils.esc(p.contents)}">${Utils.esc(p.contents)}</div>`
           : `<span class="row-contents-empty">—</span>`;
 
-        const isMyPackage = CurrentUser.name && p.orderedBy === CurrentUser.name;
         const claimBtn = (p.status === 'pending' && !p.claimedBy)
           ? `<button class="btn btn-claim btn-sm" data-action="claim" data-id="${p.id}" title="Claim this package" aria-label="Claim">Claim</button>`
           : p.claimedBy
             ? `<span class="claim-chip" title="Claimed by ${Utils.esc(p.claimedBy)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>${Utils.esc(p.claimedBy)}</span>`
             : '';
-
-        // Highlight rows ordered by the current logged-in user
-        if (isMyPackage) rowClass += ' row-mine';
 
         return `
           <tr class="${rowClass}" data-id="${p.id}" style="animation-delay: ${Math.min(i * 18, 200)}ms;${isMyPackage ? 'box-shadow: inset 3px 0 0 var(--accent);' : ''}">
